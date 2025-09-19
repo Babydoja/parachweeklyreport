@@ -51,47 +51,47 @@ const handleDelete = (id) => {
 export const ReportCard = ({ report }) => (
     <>
     <div>
-        <table className='bg-white rounded-lg shadow-md p-6 border-l-4 border-blue-500 m-7'>
-            <tr>
-                <th className='border border-black p-3 text-2xl'>ID</th>
-                <th className='border border-black p-3 text-2xl'>Student Name</th>
-                <th className='border border-black p-3 text-2xl'>Course</th>
-                <th className='border border-black p-3 text-2xl'>Mode Of Learning</th>
-                <th className='border border-black p-3 text-2xl'>Attendance</th>
-                <th className='border border-black p-3 text-2xl'>Week</th>
-                {/* <th className='border border-blue-500 p-3 text-2xl'>Status</th> */}
-                <th className='border border-black p-3 text-2xl'>Current Topics</th>
-                <th className='border border-black p-3 text-2xl'>Comments</th>
-                {/* <th className='border border-blue-500 p-3 text-2xl'>Week Ending</th> */}
+        <table className=' font-[inter] bg-white rounded-lg shadow-md border-collapse p-6 border border-[#e5e7ed] m-7'>
+            <tr className=''>
+                <th className='border border-[#e5e7ed]  p-3 text-2xl'>ID</th>
+                <th className='border border-[#e5e7ed]  p-3 text-2xl'>Student Name</th>
+                <th className='border border-[#e5e7ed]  p-3 text-2xl'>Course</th>
+                <th className='border border-[#e5e7ed]  p-3 text-2xl'>Mode Of Learning</th>
+                <th className='border border-[#e5e7ed]  p-3 text-2xl'>Attendance</th>
+                <th className='border border-[#e5e7ed]  p-3 text-2xl'>Week</th>
+                {/* <th className='borderborder-[#e5e7ed]  p-3 text-2xl'>Status</th> */}
+                <th className='border border-[#e5e7ed]  p-3 text-2xl'>Current Topics</th>
+                <th className='border border-[#e5e7ed]  p-3 text-2xl'>Comments</th>
+                {/* <th className='borderborder-[#e5e7ed]  p-3 text-2xl'>Week Ending</th> */}
             </tr>
             <tr>
-                <td className='border border-blue-500 px-2 py-2 text-xl'>Py123</td>
-                <td className='border border-blue-500 px-2 py-2 text-xl'>{report.studentName}</td>
-                <td className='border border-blue-500 px-2 py-2 text-xl'>{courseOptions.find(c => c.value === report.course)?.label}</td>
-                <td className='border border-blue-500 px-2 py-2 text-xl'>
+                <td className='  px-2 py-2 font-medium text-center text-[14px]'>Py123</td>
+                <td className='  px-2 py-2 font-medium text-center text-[14px]'>{report.studentName}</td>
+                <td className='  px-2 py-2 font-medium text-center text-[14px]'>{courseOptions.find(c => c.value === report.course)?.label}</td>
+                <td className='  px-2 py-2 font-medium text-center text-[14px] content-center justify-items-center'>
                     {report.modeOfLearning === 'online' ? 
-                        <Monitor className="text-blue-600" size={14} /> : 
+                        <Monitor className="text-blue-600 flex" size={14} /> : 
                         <Users className="text-green-600" size={14} />
                      }{report.modeOfLearning}</td>
-                <td className={`border border-blue-500 px-2 py-2 text-xl ${getAttendanceColor(report.actualAttendance, report.weeklyExpectedClasses)}`}>{report.actualAttendance}/{report.weeklyExpectedClasses} classes</td>
-                <td className='border border-blue-500 px-2 py-2 text-xl'>{report.currentWeek.charAt(0).toUpperCase() + report.currentWeek.slice(1)}</td>
-                {/* <td className={`border border-blue-500 px-2 py-2 text-xl ${getStatusColor(report.status)}`}>{report.status === 'in-progress' ? 'In Progress' : 'On Hold'}</td> */}
-                <td className='border border-blue-500 px-2 py-2 text-xl'>{report.currentTopic}</td>
-                <td className='border border-blue-500 px-2 py-2 text-xl'>{report.comments}</td>
-                {/* <td className='border border-blue-500 px-2 py-2 text-xl'>{new Date(report.weekEnding).toLocaleDateString()}</td> */}
+                <td className={`borderborder-[#e5e7ed]  px-2 py-2 font-medium text-center text-[14px] ${getAttendanceColor(report.actualAttendance, report.weeklyExpectedClasses)}`}>{report.actualAttendance}/{report.weeklyExpectedClasses} classes</td>
+                <td className='borderborder-[#e5e7ed]  px-2 py-2 font-medium text-center text-[14px]'>{report.currentWeek.charAt(0).toUpperCase() + report.currentWeek.slice(1)}</td>
+                {/* <td className={`borderborder-[#e5e7ed]  px-2 py-2 font-medium text-center text-[14px] ${getStatusColor(report.status)}`}>{report.status === 'in-progress' ? 'In Progress' : 'On Hold'}</td> */}
+                <td className='px-2 py-2 font-medium text-center text-[14px]'>{report.currentTopic}</td>
+                <td className='px-2 py-2 font-medium text-center text-[14px]'>{report.comments}</td>
+                {/* <td className='borderborder-[#e5e7ed]  px-2 py-2 font-medium text-center text-[14px]'>{new Date(report.weekEnding).toLocaleDateString()}</td> */}
                 
             </tr>
         </table>
     </div>
     
-    {/* <div className="bg-white rounded-lg shadow-md p-6 border-l-4 border-blue-500 m-7">
+    {/* <div className="bg-white rounded-lg shadow-md p-6 border-l-4border-[#e5e7ed]  m-7">
      
       <div className="flex justify-between items-start mb-4">
         <div className="flex items-center gap-3">
           <User className="text-gray-600" size={20} />
           <div>
            
-            <h3 className="text-xl font-semibold text-gray-800">{report.studentName}</h3>
+            <h3 className= font-medium text-center"text-[14px] font-semibold text-gray-800">{report.studentName}</h3>
             <div className="flex items-center gap-2 mt-1">
               {report.modeOfLearning === 'online' ? 
                 <Monitor className="text-blue-600" size={14} /> : 
