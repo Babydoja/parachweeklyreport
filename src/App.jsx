@@ -4,6 +4,7 @@ import TutorReportDashboard from "./pages/TutorReportDashboard";
 import ReportsList from "./component/ReportsList";
 import AddReport from "./component/AddReport";
 import { EditableReport } from "./component/EditableReport";
+import Scheduler from "./component/Scheduler";
 
 
 export default function App() {
@@ -20,6 +21,7 @@ export default function App() {
             <Route path="/" element={<TutorReportDashboard />} />
             <Route path="/reportlist" element={<ReportsList/>} />
             <Route path="/addreport" element={<AddReport/>} />
+             <Route path="/scheduler" element={<Scheduler/>} />
             <Route path="/editreport/:id" element={<EditableReport/>} />
           </Routes>
         </div>

@@ -38,9 +38,11 @@ export default function Sidebar() {
                 {isOpen && <p>Dashboard</p>}
             </Link>
           </li>
-          <li className="flex items-center gap-3 cursor-pointer hover:text-blue-400">
+          <li >
+            <Link  to='/scheduler'className="flex items-center gap-3 cursor-pointer hover:text-blue-400">
+           
             <User size={20} />
-            {isOpen && <span>Profile</span>}
+            {isOpen && <p>Shedules</p>} </Link>
           </li>
           <li >
             <Link to='/reportlist' className="flex items-center gap-3 cursor-pointer hover:text-blue-400">   
