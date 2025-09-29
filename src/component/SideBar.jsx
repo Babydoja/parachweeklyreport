@@ -39,7 +39,7 @@ export default function Sidebar() {
             </Link>
           </li>
           <li >
-            <Link  to='/scheduler'className="flex items-center gap-3 cursor-pointer hover:text-blue-400">
+            <Link  to='/Timetable'className="flex items-center gap-3 cursor-pointer hover:text-blue-400">
            
             <User size={20} />
             {isOpen && <p>Shedules</p>} </Link>
