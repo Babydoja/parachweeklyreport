@@ -210,6 +210,8 @@ const CourseTopicManager = () => {
     },
   };
 
+  const selectedCourse = (courses || []).find(c => String(c.id) === String(selectedCourseId));
+
   return (
     <div style={styles.container}>
       {/* Courses list */}
@@ -235,8 +237,9 @@ const CourseTopicManager = () => {
       {/* Topics list */}
       <div style={styles.mainContent}>
         <h2 style={styles.header}>
-          Topics {selectedCourseId ? `for Course ${selectedCourseId}` : ""}
+          Topics {selectedCourse ? `for ${selectedCourse.name}` : ""}
         </h2>
+ 
         {loadingTopics ? (
           <p style={styles.placeholderText}>Loading topics...</p>
         ) : selectedCourseId ? (

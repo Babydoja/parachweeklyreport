@@ -299,24 +299,18 @@ const Students = () => {
           ))}
         </select>
 
-        <input
-          type="text"
-          name="mode"
-          placeholder="Mode of Learning"
-          value={formData.mode}
-          onChange={handleChange}
-          style={styles.input}
-        />
+        <select
+  name="mode"
+  value={formData.mode}
+  onChange={handleChange}
+  style={styles.input}
+>
+  <option value="">Mode of Learning</option>
+  <option value="Physical">Physical</option>
+  <option value="Online">Online</option>
+</select>
 
-        <input
-          type="number"
-          name="week"
-          placeholder="Current Week"
-          value={formData.week}
-          min={1}
-          onChange={handleChange}
-          style={styles.input}
-        />
+        
 
         <div style={styles.buttonsRow}>
           <button
