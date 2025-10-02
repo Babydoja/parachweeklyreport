@@ -3,9 +3,6 @@ import Sidebar from "./component/SideBar";
 import ReportsList from "./component/ReportsList";
 import AddReport from "./component/AddReport";
 import { EditableReport } from "./component/EditableReport";
-// import Scheduler from "./component/Scheduler";
-// import TutorReport from "../components/TutorReports";
-// import TutorTimetableManager from "../components/TimetableManager";
 import TutorReportDashboard from "./pages/TutorReportDashboard";
 import Courses from "./components/Courses";
 import Attendance from "./components/AttendanceByStudent";
@@ -16,6 +13,7 @@ import Table from "./components/TimetableManager";
 import Student from "./components/Students";
 import Report from "./components/TutorReports";
 import Tutors from "./components/Tutors";
+import { ToastContainer } from "react-toastify";
 
 
 
@@ -24,6 +22,7 @@ export default function App() {
   return (
     
     <BrowserRouter>
+    <ToastContainer/>
       {/* Parent Flex Container */}
       <div className="flex">
         {/* Sidebar */}

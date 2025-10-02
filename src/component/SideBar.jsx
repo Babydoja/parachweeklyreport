@@ -24,7 +24,7 @@ export default function Sidebar() {
 
         {/* Logo */}
         <div className="flex items-center gap-2 mb-10">
-          <div className="bg-blue-500 p-2 rounded-md">
+          <div className="bg-[#3D3DD4] p-2 rounded-md">
             <Home size={24} />
           </div>
           {isOpen && <h1 className="text-xl font-bold">PARACH</h1>}
@@ -39,48 +39,66 @@ export default function Sidebar() {
             </Link>
           </li>
           <li >
-            <Link  to='/Timetable' className="flex items-center gap-3 cursor-pointer hover:text-blue-400">
+            <Link  to='/globaltable' className="flex items-center gap-3 cursor-pointer hover:text-blue-400">
               <User size={20} />
               {isOpen && <p>Shedules</p>} 
             </Link>
           </li>
-          <li >
+          <li>
             <Link to='/reportlist' className="flex items-center gap-3 cursor-pointer hover:text-blue-400">   
                 <Calendar size={20} />
                 {isOpen && <span>Weekly Reports </span>} 
             </Link>
+          </li>
+          <li>
             <Link to='/courses' className="flex items-center gap-3 cursor-pointer hover:text-blue-400">   
                 <Calendar size={20} />
                 {isOpen && <span>All Courses </span>} 
             </Link>
+          </li>
+          <li>
             <Link to='/attendance' className="flex items-center gap-3 cursor-pointer hover:text-blue-400">   
                 <Calendar size={20} />
                 {isOpen && <span>Student Attendance </span>} 
             </Link>
+          </li>
+          <li>
             <Link to='/class' className="flex items-center gap-3 cursor-pointer hover:text-blue-400">   
                 <Calendar size={20} />
                 {isOpen && <span>Class </span>} 
             </Link>
+          </li>
+          <li>
             <Link to='/topics' className="flex items-center gap-3 cursor-pointer hover:text-blue-400">   
                 <Calendar size={20} />
                 {isOpen && <span>Topics </span>} 
             </Link>
+          </li>
+          <li>
             <Link to='/globaltable' className="flex items-center gap-3 cursor-pointer hover:text-blue-400">   
                 <Calendar size={20} />
                 {isOpen && <span>Global Timetable </span>} 
             </Link>
+          </li>
+          <li>
             <Link to='/tutortable' className="flex items-center gap-3 cursor-pointer hover:text-blue-400">   
                 <Calendar size={20} />
                 {isOpen && <span>Tutor Timetable </span>} 
             </Link>
+          </li>
+          <li>
             <Link to='/students' className="flex items-center gap-3 cursor-pointer hover:text-blue-400">   
                 <Calendar size={20} />
                 {isOpen && <span>All Students </span>} 
             </Link>
+          </li>
+          <li>
             <Link to='/tutorreport' className="flex items-center gap-3 cursor-pointer hover:text-blue-400">   
                 <Calendar size={20} />
                 {isOpen && <span>Tutor Report </span>} 
             </Link>
+          </li>
+          <li>
             <Link to='/tutors' className="flex items-center gap-3 cursor-pointer hover:text-blue-400">   
                 <Calendar size={20} />
                 {isOpen && <span>All Parach Tutors </span>} 
