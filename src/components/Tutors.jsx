@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import API from "../api/api";
+import { toast } from "react-toastify";
 
 const Tutors = () => {
   const [tutors, setTutors] = useState([]);
@@ -56,9 +57,11 @@ const Tutors = () => {
     try {
       await API.post("tutors/", formData);
       setFormData({ name: "", email: "", specialization: "", active: true });
+      toast.success('Tutor Added Successfully')
       fetchTutors();
     } catch (err) {
       console.error("Failed to add tutor", err.response?.data || err.message);
+      toast.error("Failed to add tutor", err.response?.data || err.message);
     }
     setLoading(false);
   };
