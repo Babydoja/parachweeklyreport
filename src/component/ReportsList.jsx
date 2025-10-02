@@ -17,11 +17,6 @@ export default function ReportsList() {
       course: "python",
       currentWeek: "week3",
       currentTopic: "Functions and Loops",
-      weeklyExpectedClasses: 3,
-      actualAttendance: 2,
-      comments: "Great progress with functions. Missed one class due to illness but catching up well.",
-      status: "in-progress",
-      weekEnding: "2025-09-12",
       isActive: true
     },
     {
@@ -31,11 +26,6 @@ export default function ReportsList() {
       course: "web-dev",
       currentWeek: "week1",
       currentTopic: "HTML Basics and Structure",
-      weeklyExpectedClasses: 2,
-      actualAttendance: 2,
-      comments: "Excellent attendance and understanding. Very engaged during sessions.",
-      status: "in-progress",
-      weekEnding: "2025-09-12",
         isActive: false
     }
   ]);
