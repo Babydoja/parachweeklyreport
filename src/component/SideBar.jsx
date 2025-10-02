@@ -38,14 +38,52 @@ export default function Sidebar() {
                 {isOpen && <p>Dashboard</p>}
             </Link>
           </li>
-          <li className="flex items-center gap-3 cursor-pointer hover:text-blue-400">
-            <User size={20} />
-            {isOpen && <span>Profile</span>}
+          <li >
+            <Link  to='/Timetable' className="flex items-center gap-3 cursor-pointer hover:text-blue-400">
+              <User size={20} />
+              {isOpen && <p>Shedules</p>} 
+            </Link>
           </li>
           <li >
             <Link to='/reportlist' className="flex items-center gap-3 cursor-pointer hover:text-blue-400">   
                 <Calendar size={20} />
                 {isOpen && <span>Weekly Reports </span>} 
+            </Link>
+            <Link to='/courses' className="flex items-center gap-3 cursor-pointer hover:text-blue-400">   
+                <Calendar size={20} />
+                {isOpen && <span>All Courses </span>} 
+            </Link>
+            <Link to='/attendance' className="flex items-center gap-3 cursor-pointer hover:text-blue-400">   
+                <Calendar size={20} />
+                {isOpen && <span>Student Attendance </span>} 
+            </Link>
+            <Link to='/class' className="flex items-center gap-3 cursor-pointer hover:text-blue-400">   
+                <Calendar size={20} />
+                {isOpen && <span>Class </span>} 
+            </Link>
+            <Link to='/topics' className="flex items-center gap-3 cursor-pointer hover:text-blue-400">   
+                <Calendar size={20} />
+                {isOpen && <span>Topics </span>} 
+            </Link>
+            <Link to='/globaltable' className="flex items-center gap-3 cursor-pointer hover:text-blue-400">   
+                <Calendar size={20} />
+                {isOpen && <span>Global Timetable </span>} 
+            </Link>
+            <Link to='/tutortable' className="flex items-center gap-3 cursor-pointer hover:text-blue-400">   
+                <Calendar size={20} />
+                {isOpen && <span>Tutor Timetable </span>} 
+            </Link>
+            <Link to='/students' className="flex items-center gap-3 cursor-pointer hover:text-blue-400">   
+                <Calendar size={20} />
+                {isOpen && <span>All Students </span>} 
+            </Link>
+            <Link to='/tutorreport' className="flex items-center gap-3 cursor-pointer hover:text-blue-400">   
+                <Calendar size={20} />
+                {isOpen && <span>Tutor Report </span>} 
+            </Link>
+            <Link to='/tutors' className="flex items-center gap-3 cursor-pointer hover:text-blue-400">   
+                <Calendar size={20} />
+                {isOpen && <span>All Parach Tutors </span>} 
             </Link>
           </li>
           <li >
