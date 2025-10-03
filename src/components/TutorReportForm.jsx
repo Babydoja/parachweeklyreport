@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import API from "../api/api";
 import { toast } from "react-toastify";
+import { data } from "react-router-dom";
 
 const TutorReportForm = ({ tutorId, onReportCreated }) => {
   const [courses, setCourses] = useState([]);
@@ -28,7 +29,7 @@ const TutorReportForm = ({ tutorId, onReportCreated }) => {
         ]);
         setCourses(coursesRes.data);
         setStudents(studentsRes.data);
-        setTopics(topicsRes.data);
+        setTopics(topicsRes.data)
       } catch (err) {
         console.error("Failed to fetch data:", err);
       }
@@ -139,6 +140,13 @@ const TutorReportForm = ({ tutorId, onReportCreated }) => {
               </option>
             ))}
           </select>
+
+          {/* <input
+            value={topic}
+            onChange={(e) => setTopic(e.target.value)}
+            required
+            className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          /> */}
         </div>
 
         {/* Mode of Learning */}

@@ -145,12 +145,12 @@ const Courses = () => {
 
                 <div>
                   <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
-                    Description
+                    Course Code
                   </label>
                   <textarea
                     id="description"
                     name="description"
-                    placeholder="Describe what students will learn..."
+                    placeholder="Enter the Course Code e.g DA..."
                     value={formData.description}
                     onChange={handleChange}
                     rows="4"

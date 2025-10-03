@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { User, Edit2, Trash2, Plus, X, User2 } from "lucide-react";
 import API from "../api/api";
 import { toast } from "react-toastify";
+import Select from 'react-select';
 
 const Students = () => {
   const [students, setStudents] = useState([]);
@@ -57,18 +58,14 @@ const Students = () => {
     }
   };
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
+const handleChange = (e) => {
+  const { name, value } = e.target;
+  setFormData({
+    ...formData,
+    [name]: value,
+  });
+};
 
-    if (name === "course_ids") {
-      const selected = Array.from(e.target.selectedOptions, (option) =>
-        parseInt(option.value)
-      );
-      setFormData((prev) => ({ ...prev, [name]: selected }));
-    } else {
-      setFormData((prev) => ({ ...prev, [name]: value }));
-    }
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -154,6 +151,18 @@ const Students = () => {
     }
   };
 
+  // const toggleActive = async (student) => {
+  //   const updatedStatus = !student.active;
+  //   try {
+  //     await API.patch(`tutors/${student.id}/`, { active: updatedStatus });
+  //     setStudents((prev) =>
+  //       prev.map((t) => (t.id === .id ? { ...t, active: updatedStatus } : t))
+  //     );
+  //   } catch (err) {
+  //     console.error("Failed to toggle tutor status", err);
+  //   }
+  // }; 
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-6xl mx-auto">
@@ -198,25 +207,26 @@ const Students = () => {
                   />
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Courses
-                  </label>
-                  <select
-                    name="course_ids"
-                    multiple
-                    value={formData.course_ids}
-                    onChange={handleChange}
-                    required
-                    className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all"
-                  >
-                    {courses.map((course) => (
-                      <option key={course.id} value={course.id}>
-                        {course.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+              <div>
+  <label className="block text-sm font-medium text-gray-700 mb-2">
+    Courses
+  </label>
+  <select
+    name="course_ids"
+    value={formData.course_ids}
+    onChange={handleChange}
+    required
+    className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all"
+  >
+    <option value="">Select a course</option>
+    {courses.map((course) => (
+      <option key={course.id} value={course.id}>
+        {course.name}
+      </option>
+    ))}
+  </select>
+</div>
+
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
