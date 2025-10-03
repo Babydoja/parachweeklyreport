@@ -53,6 +53,7 @@ const TutorReportForm = ({ tutorId, onReportCreated }) => {
 
       const res = await API.post(`/tutors/${tutorId}/reports/`, payload);
       setSuccess("Report created successfully!");
+      toast.success("Report created successfully!")
 
       // Reset form
       setCourse("");
@@ -66,6 +67,7 @@ const TutorReportForm = ({ tutorId, onReportCreated }) => {
     } catch (err) {
       console.error("Report creation failed:", err.response?.data || err.message);
       setError("Failed to create report. Please try again.");
+      toast.error("Report creation failed:", err.response?.data || err.message);
     }
 
     setLoading(false);

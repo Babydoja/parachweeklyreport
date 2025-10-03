@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { BookOpen, Edit2, Trash2, Plus, X } from 'lucide-react';
+import { BookOpen, Edit2, Trash2, Plus, X } from "lucide-react";
 import API from "../api/api";
 import { toast } from "react-toastify";
 
@@ -11,6 +11,11 @@ const Courses = () => {
   });
   const [editingId, setEditingId] = useState(null);
   const [loading, setLoading] = useState(false);
+
+  // Search + Pagination states
+  const [search, setSearch] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const coursesPerPage = 5;
 
   useEffect(() => {
     fetchCourses();
@@ -40,10 +45,10 @@ const Courses = () => {
     try {
       if (editingId) {
         await API.put(`courses/${editingId}/`, formData);
-        toast.success('Edited the course successfully');
+        toast.success("Edited the course successfully");
       } else {
         await API.post("courses/", formData);
-        toast.success('Added the course successfully');
+        toast.success("Added the course successfully");
       }
 
       setFormData({ name: "", description: "" });
@@ -70,7 +75,7 @@ const Courses = () => {
 
     try {
       await API.delete(`courses/${id}/`);
-      toast.success('Course deleted successfully');
+      toast.success("Course deleted successfully");
       fetchCourses();
     } catch (err) {
       console.error("Error deleting course", err);
@@ -82,6 +87,17 @@ const Courses = () => {
     setEditingId(null);
     setFormData({ name: "", description: "" });
   };
+
+  // FILTER courses by name
+  const filteredCourses = courses.filter((course) =>
+    course.name.toLowerCase().includes(search.toLowerCase())
+  );
+
+  // PAGINATION logic
+  const indexOfLastCourse = currentPage * coursesPerPage;
+  const indexOfFirstCourse = indexOfLastCourse - coursesPerPage;
+  const currentCourses = filteredCourses.slice(indexOfFirstCourse, indexOfLastCourse);
+  const totalPages = Math.ceil(filteredCourses.length / coursesPerPage);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -178,19 +194,33 @@ const Courses = () => {
           {/* Course List */}
           <div className="flex-1">
             <div className="bg-white rounded-2xl shadow-xl p-6 border border-gray-100">
-              <h2 className="text-xl font-semibold text-gray-900 mb-6">
-                All Courses ({courses.length})
-              </h2>
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-xl font-semibold text-gray-900">
+                  All Courses ({filteredCourses.length})
+                </h2>
+                <input
+                  type="text"
+                  placeholder="Search by course name..."
+                  value={search}
+                  onChange={(e) => {
+                    setSearch(e.target.value);
+                    setCurrentPage(1); // reset to first page on search
+                  }}
+                  className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
+                />
+              </div>
 
-              {courses.length === 0 ? (
+              {filteredCourses.length === 0 ? (
                 <div className="text-center py-12">
                   <BookOpen className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                   <p className="text-gray-500 text-lg">No courses found.</p>
-                  <p className="text-gray-400 text-sm mt-2">Create your first course to get started!</p>
+                  <p className="text-gray-400 text-sm mt-2">
+                    Create your first course to get started!
+                  </p>
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {courses.map((course) => (
+                  {currentCourses.map((course) => (
                     <div
                       key={course.id}
                       className="group bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-5 border border-gray-200 hover:shadow-md hover:border-indigo-300 transition-all duration-300"
@@ -204,7 +234,7 @@ const Courses = () => {
                             {course.description}
                           </p>
                         </div>
-                        
+
                         <div className="flex gap-2 ml-4">
                           <button
                             onClick={() => handleEdit(course)}
@@ -224,6 +254,39 @@ const Courses = () => {
                       </div>
                     </div>
                   ))}
+                </div>
+              )}
+
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <div className="flex justify-center mt-6 gap-2">
+                  <button
+                    onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                    disabled={currentPage === 1}
+                    className="px-4 py-2 bg-gray-100 rounded-lg disabled:opacity-50"
+                  >
+                    Prev
+                  </button>
+                  {[...Array(totalPages)].map((_, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => setCurrentPage(idx + 1)}
+                      className={`px-4 py-2 rounded-lg ${
+                        currentPage === idx + 1
+                          ? "bg-indigo-600 text-white"
+                          : "bg-gray-100 hover:bg-gray-200"
+                      }`}
+                    >
+                      {idx + 1}
+                    </button>
+                  ))}
+                  <button
+                    onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                    disabled={currentPage === totalPages}
+                    className="px-4 py-2 bg-gray-100 rounded-lg disabled:opacity-50"
+                  >
+                    Next
+                  </button>
                 </div>
               )}
             </div>

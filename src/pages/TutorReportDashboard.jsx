@@ -15,21 +15,7 @@ const TutorReportDashboard = () => {
         {/* Stats Cards */}
         <StatsCards/>
 
-        {/* Add New Report Button */}
-        <div className="mb-6">
-          <button
-            className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-md"
-          >
-            <Plus size={20} />
-            <Link to='/addreport'>Add New Student Report</Link>
-          </button>
-        </div>
-
-        {/* Add New Report Form */}
-        
-
-        {/* Report lIST */}
-        {/* <ReportsList/> */}
+       
       </div>
     </div>
   );

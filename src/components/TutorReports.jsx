@@ -121,9 +121,6 @@ const TutorReports = () => {
       </div>
     </div>
   </div>
-
-
-
 {/* Loading state */}
 {loading && (
   <p className="text-blue-600 text-sm font-medium mb-4 animate-pulse">
