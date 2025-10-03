@@ -14,6 +14,7 @@ import Student from "./components/Students";
 import Report from "./components/TutorReports";
 import Tutors from "./components/Tutors";
 import { ToastContainer } from "react-toastify";
+import ProtectedPage from "./component/ProtectedPage";
 
 
 
@@ -23,6 +24,7 @@ export default function App() {
     
     <BrowserRouter>
     <ToastContainer/>
+    {/* <ProtectedPage/> */}
       {/* Parent Flex Container */}
       <div className="flex">
         {/* Sidebar */}

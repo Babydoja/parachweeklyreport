@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Home, User, Settings, LogOut, Menu , X ,Calendar, Plus} from "lucide-react"; 
 import { Link } from "react-router-dom";
 import parachlogo from '../assets/parachlogo.png'
+import logo from '../assets/logo.png'
 export default function Sidebar() {
   const [isOpen, setIsOpen] = useState(true);
     
@@ -25,9 +26,9 @@ export default function Sidebar() {
 
         {/* Logo */}
         <div className="flex items-center gap-2 mb-10">
-          {/* <div className="bg-[#3D3DD4] p-2 rounded-md">
-            <Home size={24} />
-          </div> */}
+          <div className="">
+            {isOpen ? null : <img src={logo} alt="logo" className="w-[30px]" /> }
+          </div>
           {isOpen && <img src={parachlogo}/>}
         </div>
 
