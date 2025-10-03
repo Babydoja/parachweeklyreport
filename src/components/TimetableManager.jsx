@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { Clock, Pencil, Trash2 } from "lucide-react"; // icons
 import API from "../api/api";
 
 const TutorTimetableManager = () => {
@@ -6,11 +7,9 @@ const TutorTimetableManager = () => {
   const [tutors, setTutors] = useState([]);
   const [courses, setCourses] = useState([]);
   const [selectedTutor, setSelectedTutor] = useState(null);
-
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-
   const [editingId, setEditingId] = useState(null);
+  const [loading, setLoading] = useState(false);
+
   const [entryForm, setEntryForm] = useState({
     tutor_id: "",
     day_of_week: "",
@@ -19,11 +18,10 @@ const TutorTimetableManager = () => {
     subject: "",
   });
 
-  const DAYS = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
-  const HOURS = Array.from({ length: 14 }, (_, i) => 9 + i); // 9:00–22:00
-  const HOUR_HEIGHT = 150;
+  const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+  const HOURS = Array.from({ length: 14 }, (_, i) => 9 + i); // 9AM–10PM
 
-  // Fetch tutors
+  // Fetch Tutors
   const fetchTutors = async () => {
     try {
       const res = await API.get("tutors/");
@@ -33,7 +31,7 @@ const TutorTimetableManager = () => {
     }
   };
 
-  // Fetch courses
+  // Fetch Courses
   const fetchCourses = async () => {
     try {
       const res = await API.get("courses/");
@@ -43,17 +41,15 @@ const TutorTimetableManager = () => {
     }
   };
 
-  // Fetch timetable for selected tutor
+  // Fetch Tutor Timetable
   const fetchTutorEntries = async (tutorId) => {
     if (!tutorId) return;
     setLoading(true);
     try {
       const res = await API.get(`timetable/tutor/${tutorId}/`);
       setEntries(Array.isArray(res.data) ? res.data : res.data.results || []);
-      setError(null);
     } catch (err) {
       console.error("Failed to fetch timetable:", err.response?.data || err.message);
-      setError("Failed to fetch timetable entries");
     } finally {
       setLoading(false);
     }
@@ -79,34 +75,60 @@ const TutorTimetableManager = () => {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!selectedTutor) return;
+  e.preventDefault();
+  if (!selectedTutor) return;
 
-    const payload = {
-      ...entryForm,
-      tutor_id: selectedTutor.id,
-    };
-
-    try {
-      if (editingId) {
-        await API.put(`timetable/entries/${editingId}/`, payload);
-        setEditingId(null);
-      } else {
-        await API.post("timetable/entries/create/", payload);
-      }
-      fetchTutorEntries(selectedTutor.id);
-      setEntryForm({
-        tutor_id: selectedTutor.id,
-        day_of_week: "",
-        start_time: "",
-        end_time: "",
-        subject: "",
-      });
-    } catch (err) {
-      console.error("Error saving entry:", err.response?.data || err.message);
-      alert("Error saving timetable entry.");
-    }
+  const payloadBase = {
+    ...entryForm,
+    tutor_id: selectedTutor.id,
   };
+
+  const startHour = parseInt(entryForm.start_time.split(":")[0], 10);
+  const endHour = parseInt(entryForm.end_time.split(":")[0], 10);
+
+  // Validate time range
+  if (startHour > endHour) {
+    alert("Start time must be before end time.");
+    return;
+  }
+
+  try {
+    if (editingId) {
+      // Single update for editing
+      await API.put(`timetable/entries/${editingId}/`, payloadBase);
+      setEditingId(null);
+    } else {
+      // Create an entry for every hour in the range
+      const createRequests = [];
+      for (let hour = startHour; hour <= endHour; hour++) {
+        const hourStr = hour.toString().padStart(2, "0");
+
+        const payload = {
+          ...payloadBase,
+          start_time: `${hourStr}:00`,
+          end_time: `${hourStr}:59`,
+        };
+
+        createRequests.push(API.post("timetable/entries/create/", payload));
+      }
+
+      await Promise.all(createRequests);
+    }
+
+    fetchTutorEntries(selectedTutor.id);
+    setEntryForm({
+      tutor_id: selectedTutor.id,
+      day_of_week: "",
+      start_time: "",
+      end_time: "",
+      subject: "",
+    });
+  } catch (err) {
+    console.error("Error saving entry:", err.response?.data || err.message);
+    alert("Error saving timetable entry.");
+  }
+};
+
 
   const handleEdit = (entry) => {
     setEditingId(entry.id);
@@ -130,130 +152,49 @@ const TutorTimetableManager = () => {
     }
   };
 
-  const styles = {
-    container: {
-      maxWidth: "95%",
-      margin: "40px auto",
-      padding: "20px",
-      border: "1px solid #ddd",
-      borderRadius: "10px",
-      backgroundColor: "#f9f9f9",
-      fontFamily: "Arial, sans-serif",
-    },
-    tutorList: {
-      display: "flex",
-      flexWrap: "wrap",
-      gap: "10px",
-      marginBottom: "20px",
-    },
-    tutorButton: {
-      padding: "10px 15px",
-      backgroundColor: "#eee",
-      border: "1px solid #ccc",
-      borderRadius: "5px",
-      cursor: "pointer",
-    },
-    activeTutor: {
-      backgroundColor: "#4CAF50",
-      color: "white",
-      borderColor: "#4CAF50",
-    },
-    heading: { textAlign: "center", marginBottom: "20px" },
-    formGroup: { marginBottom: "15px" },
-    label: { display: "block", marginBottom: "5px", fontWeight: "bold" },
-    input: { width: "100%", padding: "8px" },
-    select: { width: "100%", padding: "8px" },
-    button: {
-      marginRight: "10px",
-      padding: "10px 20px",
-      fontSize: "14px",
-      backgroundColor: "#4CAF50",
-      color: "white",
-      border: "none",
-      borderRadius: "5px",
-      cursor: "pointer",
-    },
-    cancelButton: {
-      padding: "10px 20px",
-      fontSize: "14px",
-      backgroundColor: "#f44336",
-      color: "white",
-      border: "none",
-      borderRadius: "5px",
-      cursor: "pointer",
-    },
-    gridWrapper: { overflowX: "auto", marginTop: "30px" },
-    grid: { display: "grid", gridTemplateColumns: "100px repeat(7, 1fr)" },
-    timeCell: {
-      height: `${HOUR_HEIGHT}px`,
-      borderBottom: "1px solid #eee",
-      fontSize: "12px",
-      color: "gray",
-      padding: "4px",
-    },
-    dayCell: {
-      height: `${HOUR_HEIGHT}px`,
-      borderBottom: "1px solid #eee",
-      borderLeft: "1px solid #ddd",
-      position: "relative",
-      padding: "4px",
-    },
-    entryBox: {
-      backgroundColor: "#90cdf4",
-      borderRadius: "6px",
-      padding: "6px",
-      fontSize: "12px",
-      boxShadow: "0px 2px 4px rgba(0,0,0,0.2)",
-      marginBottom: "4px",
-    },
-    entryActions: { marginTop: "5px", display: "flex", gap: "5px" },
-    smallButton: {
-      fontSize: "11px",
-      padding: "3px 6px",
-      border: "none",
-      borderRadius: "3px",
-      cursor: "pointer",
-    },
-  };
-
+  // Group entries by day
   const byDay = {};
   for (let i = 0; i < 7; i++) byDay[i] = [];
   entries.forEach((e) => byDay[e.day_of_week]?.push(e));
 
   return (
-    <div style={styles.container}>
-      <h2 style={styles.heading}>Tutor Timetable Manager</h2>
+    <div className="max-w-7xl mx-auto p-6 my-4 bg-gray-50 rounded-xl shadow">
+      <h2 className="text-2xl font-bold text-center  mb-6">
+        Tutor Timetable Manager
+      </h2>
 
-      {/* Tutor selection */}
-      <div style={styles.tutorList}>
+      {/* Tutor Selector */}
+      <div className="flex flex-wrap gap-3 justify-center mb-6">
         {tutors.map((tutor) => (
           <button
             key={tutor.id}
-            style={{
-              ...styles.tutorButton,
-              ...(selectedTutor?.id === tutor.id ? styles.activeTutor : {}),
-            }}
             onClick={() => handleTutorSelect(tutor)}
+            className={`px-4 py-2 rounded-lg border ${
+              selectedTutor?.id === tutor.id
+                ? "bg-blue-600 text-white border-blue-600"
+                : "bg-white text-gray-700 border-blue-300 hover:bg-blue-100"
+            }`}
           >
             {tutor.name}
           </button>
         ))}
       </div>
 
+      {/* Form */}
       {selectedTutor && (
-        <>
-          <h3>{selectedTutor.name}'s Timetable</h3>
-
-          {/* Add/Edit Form */}
-          <form onSubmit={handleSubmit}>
-            <div style={styles.formGroup}>
-              <label style={styles.label}>Day of Week:</label>
+        <div className="bg-white p-6 rounded-lg shadow-md mb-8">
+          <h3 className="text-lg font-semibold mb-4 text-gray-800">
+            {editingId ? "Edit Entry" : "Add New Entry"}
+          </h3>
+          <form onSubmit={handleSubmit} className="grid md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium">Day of Week</label>
               <select
                 name="day_of_week"
                 value={entryForm.day_of_week}
                 onChange={handleChange}
                 required
-                style={styles.select}
+                className="w-full border border-blue-300 rounded-lg p-2 mt-1"
               >
                 <option value="">Select a day</option>
                 {DAYS.map((d, i) => (
@@ -264,38 +205,38 @@ const TutorTimetableManager = () => {
               </select>
             </div>
 
-            <div style={styles.formGroup}>
-              <label style={styles.label}>Start Time:</label>
+            <div>
+              <label className="block text-sm font-medium">Start Time</label>
               <input
                 type="time"
                 name="start_time"
                 value={entryForm.start_time}
                 onChange={handleChange}
                 required
-                style={styles.input}
+                className="w-full border border-blue-300 rounded-lg p-2 mt-1"
               />
             </div>
 
-            <div style={styles.formGroup}>
-              <label style={styles.label}>End Time:</label>
+            <div>
+              <label className="block text-sm font-medium">End Time</label>
               <input
                 type="time"
                 name="end_time"
                 value={entryForm.end_time}
                 onChange={handleChange}
                 required
-                style={styles.input}
+                className="w-full border border-blue-300 rounded-lg p-2 mt-1"
               />
             </div>
 
-            <div style={styles.formGroup}>
-              <label style={styles.label}>Subject:</label>
+            <div>
+              <label className="block text-sm font-medium">Subject</label>
               <select
                 name="subject"
                 value={entryForm.subject}
                 onChange={handleChange}
                 required
-                style={styles.select}
+                className="w-full border border-blue-300 rounded-lg p-2 mt-1"
               >
                 <option value="">Select a course</option>
                 {courses.map((course) => (
@@ -306,88 +247,84 @@ const TutorTimetableManager = () => {
               </select>
             </div>
 
-            <button type="submit" style={styles.button}>
-              {editingId ? "Update Entry" : "Add Entry"}
-            </button>
-            {editingId && (
+            <div className="col-span-2 flex gap-4 mt-2">
               <button
-                type="button"
-                style={styles.cancelButton}
-                onClick={() => {
-                  setEditingId(null);
-                  setEntryForm({
-                    tutor_id: selectedTutor.id,
-                    day_of_week: "",
-                    start_time: "",
-                    end_time: "",
-                    subject: "",
-                  });
-                }}
+                type="submit"
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
               >
-                Cancel
+                {editingId ? "Update Entry" : "Add Entry"}
               </button>
-            )}
-          </form>
-
-          {/* Timetable Grid */}
-          <div style={styles.gridWrapper}>
-            {/* Header */}
-            <div style={styles.grid}>
-              <div></div>
-              {DAYS.map((d) => (
-                <div key={d} style={{ textAlign: "center", fontWeight: "bold" }}>
-                  {d}
-                </div>
-              ))}
+              {editingId && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditingId(null);
+                    setEntryForm({
+                      tutor_id: selectedTutor.id,
+                      day_of_week: "",
+                      start_time: "",
+                      end_time: "",
+                      subject: "",
+                    });
+                  }}
+                  className="px-4 py-2 bg-gray-400 text-white rounded-lg hover:bg-gray-500"
+                >
+                  Cancel
+                </button>
+              )}
             </div>
+          </form>
+        </div>
+      )}
 
-            {/* Rows */}
-            {HOURS.map((hour) => (
-              <div key={hour} style={styles.grid}>
-                <div style={styles.timeCell}>{hour}:00</div>
-                {DAYS.map((day, dayIdx) => (
-                  <div key={dayIdx} style={styles.dayCell}>
-                    {byDay[dayIdx]
-                      .filter(
-                        (entry) =>
-                          parseInt(entry.start_time.split(":")[0], 10) === hour
-                      )
-                      .map((entry) => (
-                        <div key={entry.id} style={styles.entryBox}>
-                          <div style={{ fontWeight: "bold" }}>{entry.subject}</div>
-                          <div>
-                            {entry.start_time} - {entry.end_time}
-                          </div>
-                          <div style={styles.entryActions}>
-                            <button
-                              style={{
-                                ...styles.smallButton,
-                                backgroundColor: "#2196F3",
-                                color: "white",
-                              }}
-                              onClick={() => handleEdit(entry)}
-                            >
-                              Edit
-                            </button>
-                            <button
-                              style={{
-                                ...styles.smallButton,
-                                backgroundColor: "#f44336",
-                                color: "white",
-                              }}
-                              onClick={() => handleDelete(entry.id)}
-                            >
-                              Delete
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                  </div>
-                ))}
+      {/* Timetable */}
+      {selectedTutor && (
+        <div className="overflow-x-auto bg-white rounded-lg shadow">
+          <div className="grid grid-cols-8 bg-gradient-to-r from-blue-500 to-blue-600 text-white sticky top-0 z-10">
+            <div className="p-4 border-r border-r-blue-400">
+                <Clock className="w-5 h-5 mx-auto" />
+            </div>
+            {DAYS.map((day) => (
+              
+              <div key={day} className="p-4 text-center font-semibold border-r border-blue-400 last:border-r-0">
+                {day}
               </div>
             ))}
           </div>
-        </>
+          {HOURS.map((hour) => (
+            <div key={hour} className="grid grid-cols-8 border-b border-blue-100 hover:bg-blue-50 transition-colors">
+              <div className="p-2 text-gray-500">{hour}:00</div>
+              {DAYS.map((_, dayIdx) => (
+                <div key={dayIdx} className="border-l border-l-blue-100 p-2 min-h-[80px] relative">
+                  {byDay[dayIdx]
+                    .filter((entry) => parseInt(entry.start_time.split(":")[0], 10) === hour)
+                    .map((entry) => (
+                      <div
+                        key={entry.id}
+                        className="bg-blue-100 border flex justify-between items-center border-blue-400 text-blue-800 mb-2 shadow-sm rounded-lg p-3 text-sm transition-all duration-200 hover:shadow-md"
+                      >
+                        <div className="font-semibold">{entry.subject}</div>
+                        <div className="flex gap-2 mt-2">
+                          <button
+                            onClick={() => handleEdit(entry)}
+                            className="text-blue-600 hover:text-blue-800"
+                          >
+                            <Pencil size={16} />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(entry.id)}
+                            className="text-red-600 hover:text-red-800"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
       )}
     </div>
   );

@@ -1,16 +1,17 @@
 import React, { useEffect, useState } from "react";
+import { Clock, User, Users } from "lucide-react";
 import API from "../api/api";
+import { Link } from "react-router-dom";
 
 const GlobalTimetable = () => {
   const [entries, setEntries] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+  const DAYS = ["Monday", "Tuesady", "Wednesday", "Thursday", "Friday", "Saturday"];
   const HOURS = Array.from({ length: 14 }, (_, i) => 9 + i); // 9:00–22:00
   const HOUR_HEIGHT = 80;
 
-  // Fetch all timetable entries (global)
   const fetchAllEntries = async () => {
     setLoading(true);
     try {
@@ -35,105 +36,146 @@ const GlobalTimetable = () => {
     fetchAllEntries();
   }, []);
 
-  const styles = {
-    container: {
-      maxWidth: "95%",
-      margin: "40px auto",
-      padding: "20px",
-      border: "1px solid #ddd",
-      borderRadius: "10px",
-      backgroundColor: "#f9f9f9",
-      fontFamily: "Arial, sans-serif",
-    },
-    heading: { textAlign: "center", marginBottom: "12px" },
-    sub: { textAlign: "center", marginBottom: "18px", color: "#666", fontSize: 14 },
-    gridWrapper: { overflowX: "auto", marginTop: "12px" },
-    grid: { display: "grid", gridTemplateColumns: "100px repeat(7, 1fr)" },
-    timeCell: {
-      height: `${HOUR_HEIGHT}px`,
-      borderBottom: "1px solid #eee",
-      fontSize: "12px",
-      color: "gray",
-      padding: "8px 6px",
-    },
-    dayHeader: {
-      textAlign: "center",
-      fontWeight: "bold",
-      padding: "8px 6px",
-      borderBottom: "1px solid #ddd",
-    },
-    dayCell: {
-      minHeight: `${HOUR_HEIGHT}px`,
-      borderBottom: "1px solid #eee",
-      borderLeft: "1px solid #ddd",
-      padding: "6px",
-      display: "flex",
-      flexDirection: "column",
-      gap: "6px",
-    },
-    entryBox: (students) => ({
-      backgroundColor: "#f1f5f9",
-      border: `2px solid ${students === 0 ? "#f56565" : "#dbeafe"}`,
-      borderRadius: "6px",
-      padding: "6px",
-      fontSize: "13px",
-      boxShadow: "0px 1px 2px rgba(0,0,0,0.06)",
-    }),
-  };
-
-  // Group entries by day_of_week index
+  // Group entries by day
   const byDay = {};
   for (let i = 0; i < 7; i++) byDay[i] = [];
   entries.forEach((e) => {
-    const d = Number.isFinite(Number(e.day_of_week)) ? Number(e.day_of_week) : null;
-    if (d !== null && d >= 0 && d < 7) byDay[d].push(e);
+    const d = Number(e.day_of_week);
+    if (!isNaN(d) && d >= 0 && d < 7) byDay[d].push(e);
   });
 
   const tutorDisplay = (entry) => entry.tutor_name || "Unknown Tutor";
 
   return (
-    <div style={styles.container}>
-      <h2 style={styles.heading}>Global Timetable</h2>
-      <div style={styles.sub}>
+   <div className="min-h-screen bg-gradient-to-br from-blue-50 via-blue-100 to-blue-200 py-12 px-4 sm:px-6 lg:px-8">
+  <div className="max-w-7xl mx-auto">
+    {/* Header */}
+    <div className="text-center mb-8">
+      <h1 className="text-4xl font-bold mb-3">Global Timetable</h1>
+      <p className=" max-w-2xl mx-auto my-2">
         Showing all tutors' scheduled sessions — click a tutor in the admin to edit individual timetables.
+      </p>
+      <button 
+            className="inline-flex items-center px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow hover:bg-blue-700 transition-colors"
+          >
+            <Link to="/tutortable">View All Tutor Entries</Link>
+      </button>
+    </div>
+
+    {/* Loading */}
+    {loading && (
+      <div className="flex items-center justify-center py-12">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <span className="ml-4 text-blue-700">Loading timetable...</span>
       </div>
+    )}
 
-      {loading && <p>Loading timetable...</p>}
-      {error && <p style={{ color: "red" }}>{error}</p>}
+    {/* Error */}
+    {error && (
+      <div className="bg-blue-50 border border-blue-300 rounded-xl p-4 mb-6">
+        <p className="text-blue-700 text-center">{error}</p>
+      </div>
+    )}
 
-      <div style={styles.gridWrapper}>
-        {/* header row (days) */}
-        <div style={styles.grid}>
-          <div></div>
-          {DAYS.map((d) => (
-            <div key={d} style={styles.dayHeader}>{d}</div>
-          ))}
-        </div>
-
-        {/* hour rows */}
-        {HOURS.map((hour) => (
-          <div key={hour} style={styles.grid}>
-            <div style={styles.timeCell}>{hour}:00</div>
-            {DAYS.map((_, dayIdx) => (
-              <div key={dayIdx} style={styles.dayCell}>
-                {byDay[dayIdx]
-                  .filter((entry) => {
-                    if (!entry.start_time) return false;
-                    const entryHour = parseInt(String(entry.start_time).split(":")[0], 10);
-                    return entryHour === hour;
-                  })
-                  .map((entry) => (
-                    <div key={entry.id} style={styles.entryBox(entry.active_student_count ?? 0)}>
-                      {/* Single line: course - tutor_name */}
-                      {entry.subject || "Untitled"} - {tutorDisplay(entry)}
-                    </div>
-                  ))}
+    {/* Timetable */}
+    {!loading && !error && (
+      <div className="bg-white rounded-2xl shadow-xl border border-blue-100 overflow-hidden">
+        <div className="overflow-x-auto">
+          {/* Days Header */}
+          <div className="grid grid-cols-8 bg-gradient-to-r from-blue-500 to-blue-600 text-white sticky top-0 z-10">
+            <div className="p-4 border-r border-blue-400">
+              <Clock className="w-5 h-5 mx-auto" />
+            </div>
+            {DAYS.map((day) => (
+              <div
+                key={day}
+                className="p-4 text-center font-semibold border-r border-blue-400 last:border-r-0"
+              >
+                {day}
               </div>
             ))}
           </div>
-        ))}
+
+          {/* Hours */}
+          {HOURS.map((hour) => (
+            <div
+              key={hour}
+              className="grid grid-cols-8 border-b border-blue-100 hover:bg-blue-50 transition-colors"
+            >
+              {/* Hour */}
+              <div
+                className="p-4 text-sm text-blue-700 font-medium border-r border-blue-100 flex items-start justify-center bg-blue-50"
+                style={{ minHeight: `${HOUR_HEIGHT}px` }}
+              >
+                <span className="sticky top-20">{hour}:00</span>
+              </div>
+
+              {/* Day Cells */}
+              {DAYS.map((_, dayIdx) => (
+                <div
+                  key={dayIdx}
+                  className="p-3 border-r border-blue-100 last:border-r-0 flex flex-col gap-2"
+                  style={{ minHeight: `${HOUR_HEIGHT}px` }}
+                >
+                  {byDay[dayIdx]
+                    .filter((entry) => {
+                      if (!entry.start_time) return false;
+                      const entryHour = parseInt(String(entry.start_time).split(":")[0], 10);
+                      return entryHour === hour;
+                    })
+                    .map((entry) => {
+                      const hasStudents = (entry.active_student_count ?? 0) > 0;
+                      return (
+                        <div
+                          key={entry.id}
+                          className={`rounded-lg p-3 text-sm transition-all duration-200 hover:shadow-md ${
+                            hasStudents
+                              ? "bg-gradient-to-br from-blue-100 to-blue-200 border-2 border-blue-400 hover:border-blue-500"
+                              : "bg-gradient-to-br from-blue-50 to-blue-100 border-2 border-blue-200 hover:border-blue-300"
+                          }`}
+                          
+                        >
+                          <div className="font-semibold text-blue-900 mb-1 flex items-start gap-1">
+                            <Users
+                              className={`w-4 h-4 flex-shrink-0 mt-0.5 ${
+                                hasStudents ? "text-blue-600" : "text-blue-400"
+                              }`}
+                            />
+                            <span className="line-clamp-2">
+                              {entry.subject || "Untitled"}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-1 text-blue-700 text-xs">
+                            <User className="w-3 h-3 flex-shrink-0" />
+                            <span className="truncate">{tutorDisplay(entry)}</span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
       </div>
-    </div>
+    )}
+
+    {/* Legend */}
+    {!loading && !error && entries.length > 0 && (
+      <div className="mt-6 flex items-center justify-center gap-6 text-sm">
+        <div className="flex items-center gap-2">
+          <div className="w-4 h-4 rounded bg-gradient-to-br from-blue-100 to-blue-200 border-2 border-blue-400"></div>
+          <span className="text-blue-700">Has Students</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="w-4 h-4 rounded bg-gradient-to-br from-blue-50 to-blue-100 border-2 border-blue-200"></div>
+          <span className="text-blue-700">No Students</span>
+        </div>
+      </div>
+    )}
+  </div>
+</div>
+
   );
 };
 

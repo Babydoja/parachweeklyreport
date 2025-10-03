@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
+import { BookOpen, Edit2, Trash2, Plus, X } from 'lucide-react';
 import API from "../api/api";
+import { toast } from "react-toastify";
 
 const Courses = () => {
   const [courses, setCourses] = useState([]);
@@ -20,6 +22,7 @@ const Courses = () => {
       setCourses(res.data);
     } catch (err) {
       console.error("Error fetching courses", err);
+      toast.error("Error fetching courses");
     }
   };
 
@@ -37,8 +40,10 @@ const Courses = () => {
     try {
       if (editingId) {
         await API.put(`courses/${editingId}/`, formData);
+        toast.success('Edited the course successfully');
       } else {
         await API.post("courses/", formData);
+        toast.success('Added the course successfully');
       }
 
       setFormData({ name: "", description: "" });
@@ -46,9 +51,10 @@ const Courses = () => {
       fetchCourses();
     } catch (err) {
       console.error("Error saving course", err);
+      toast.error(editingId ? "Error editing the course" : "Error adding the course");
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
   const handleEdit = (course) => {
@@ -64,9 +70,11 @@ const Courses = () => {
 
     try {
       await API.delete(`courses/${id}/`);
+      toast.success('Course deleted successfully');
       fetchCourses();
     } catch (err) {
       console.error("Error deleting course", err);
+      toast.error("Error deleting the course");
     }
   };
 
@@ -75,182 +83,153 @@ const Courses = () => {
     setFormData({ name: "", description: "" });
   };
 
-  const styles = {
-    container: {
-      maxWidth: "600px",
-      margin: "2rem auto",
-      padding: "1.5rem",
-      backgroundColor: "#f9f9f9",
-      borderRadius: "8px",
-      boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-      fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
-    },
-    header: {
-      textAlign: "center",
-      color: "#2c3e50",
-      marginBottom: "1.5rem",
-    },
-    form: {
-      marginBottom: "2rem",
-      backgroundColor: "#fff",
-      padding: "1rem",
-      borderRadius: "6px",
-      boxShadow: "0 1px 6px rgba(0,0,0,0.1)",
-    },
-    formTitle: {
-      marginBottom: "1rem",
-      color: "#34495e",
-    },
-    input: {
-      width: "100%",
-      padding: "0.5rem",
-      marginBottom: "1rem",
-      borderRadius: "4px",
-      border: "1px solid #ccc",
-      fontSize: "1rem",
-      boxSizing: "border-box",
-    },
-    textarea: {
-      width: "100%",
-      minHeight: "80px",
-      padding: "0.5rem",
-      marginBottom: "1rem",
-      borderRadius: "4px",
-      border: "1px solid #ccc",
-      fontSize: "1rem",
-      resize: "vertical",
-      boxSizing: "border-box",
-    },
-    button: {
-      padding: "0.6rem 1.2rem",
-      fontSize: "1rem",
-      borderRadius: "5px",
-      border: "none",
-      cursor: "pointer",
-      fontWeight: "600",
-      color: "#fff",
-      backgroundColor: "#3498db",
-      transition: "background-color 0.3s ease",
-    },
-    cancelButton: {
-      padding: "0.6rem 1.2rem",
-      fontSize: "1rem",
-      borderRadius: "5px",
-      border: "none",
-      cursor: "pointer",
-      fontWeight: "600",
-      color: "#fff",
-      backgroundColor: "#95a5a6",
-      marginLeft: "1rem",
-      transition: "background-color 0.3s ease",
-    },
-    list: {
-      listStyle: "none",
-      padding: 0,
-      margin: 0,
-    },
-    listItem: {
-      backgroundColor: "#fff",
-      borderRadius: "6px",
-      padding: "1rem",
-      marginBottom: "1rem",
-      boxShadow: "0 1px 6px rgba(0,0,0,0.1)",
-    },
-    courseName: {
-      fontWeight: "700",
-      color: "#2c3e50",
-      fontSize: "1.1rem",
-    },
-    courseDescription: {
-      color: "#555",
-      margin: "0.4rem 0 1rem 0",
-    },
-    listButton: {
-      padding: "0.4rem 1rem",
-      fontSize: "0.9rem",
-      borderRadius: "4px",
-      border: "none",
-      cursor: "pointer",
-      fontWeight: "600",
-      color: "#fff",
-      backgroundColor: "#3498db",
-      transition: "background-color 0.3s ease",
-    },
-    deleteButton: {
-      backgroundColor: "#e74c3c",
-      marginLeft: "0.75rem",
-      padding: "0.4rem 1rem",
-      fontSize: "0.9rem",
-      borderRadius: "4px",
-      border: "none",
-      cursor: "pointer",
-      fontWeight: "600",
-      color: "#fff",
-      transition: "background-color 0.3s ease",
-    },
-  };
-
   return (
-    <div style={styles.container}>
-      <h2 style={styles.header}>Courses</h2>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-6xl mx-auto">
+        {/* Header */}
+        <div className="text-center mb-12">
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">Course Management</h1>
+          <p className="text-gray-600">Create and manage your courses</p>
+        </div>
 
-      {/* Add/Edit Course Form */}
-      <form onSubmit={handleSubmit} style={styles.form}>
-        <h3 style={styles.formTitle}>{editingId ? "Edit Course" : "Add New Course"}</h3>
+        <div className="flex flex-col lg:flex-row gap-6">
+          {/* Add/Edit Course Form */}
+          <div className="w-full lg:w-[550px] flex-shrink-0">
+            <div className="bg-white rounded-2xl shadow-xl p-6 border border-gray-100 sticky top-8">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-semibold text-gray-900">
+                  {editingId ? "Edit Course" : "Add New Course"}
+                </h2>
+                {editingId && (
+                  <button
+                    type="button"
+                    onClick={handleCancelEdit}
+                    className="text-gray-400 hover:text-gray-600 transition-colors"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                )}
+              </div>
 
-        <input
-          type="text"
-          name="name"
-          placeholder="Course Name"
-          value={formData.name}
-          onChange={handleChange}
-          required
-          style={styles.input}
-        />
-        <textarea
-          name="description"
-          placeholder="Course Description"
-          value={formData.description}
-          onChange={handleChange}
-          required
-          style={styles.textarea}
-        />
-        <button type="submit" disabled={loading} style={styles.button}>
-          {loading ? "Saving..." : editingId ? "Update Course" : "Add Course"}
-        </button>
-        {editingId && (
-          <button
-            type="button"
-            onClick={handleCancelEdit}
-            style={styles.cancelButton}
-          >
-            Cancel
-          </button>
-        )}
-      </form>
+              <div className="space-y-4">
+                <div>
+                  <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
+                    Course Name
+                  </label>
+                  <input
+                    type="text"
+                    id="name"
+                    name="name"
+                    placeholder="Python Programming"
+                    value={formData.name}
+                    onChange={handleChange}
+                    className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all"
+                  />
+                </div>
 
-      {/* Course List */}
-      <ul style={styles.list}>
-        {courses.length === 0 && <li>No courses found.</li>}
-        {courses.map((course) => (
-          <li key={course.id} style={styles.listItem}>
-            <div style={styles.courseName}>{course.name}</div>
-            <div style={styles.courseDescription}>{course.description}</div>
-            <button
-              onClick={() => handleEdit(course)}
-              style={styles.listButton}
-            >
-              Edit
-            </button>
-            <button
-              onClick={() => handleDelete(course.id)}
-              style={styles.deleteButton}
-            >
-              Delete
-            </button>
-          </li>
-        ))}
-      </ul>
+                <div>
+                  <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
+                    Description
+                  </label>
+                  <textarea
+                    id="description"
+                    name="description"
+                    placeholder="Describe what students will learn..."
+                    value={formData.description}
+                    onChange={handleChange}
+                    rows="4"
+                    className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all resize-none"
+                  />
+                </div>
+
+                <button
+                  onClick={handleSubmit}
+                  disabled={loading || !formData.name || !formData.description}
+                  className="w-full  bg-[#3D3DD4]  text-white py-3 rounded-lg font-medium disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  {loading ? (
+                    "Saving..."
+                  ) : editingId ? (
+                    <>
+                      <Edit2 className="w-4 h-4" />
+                      Update Course
+                    </>
+                  ) : (
+                    <>
+                      <Plus className="w-4 h-4" />
+                      Add Course
+                    </>
+                  )}
+                </button>
+
+                {editingId && (
+                  <button
+                    type="button"
+                    onClick={handleCancelEdit}
+                    className="w-full bg-gray-100 text-gray-700 py-3 rounded-lg font-medium hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400 transition-all"
+                  >
+                    Cancel
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Course List */}
+          <div className="flex-1">
+            <div className="bg-white rounded-2xl shadow-xl p-6 border border-gray-100">
+              <h2 className="text-xl font-semibold text-gray-900 mb-6">
+                All Courses ({courses.length})
+              </h2>
+
+              {courses.length === 0 ? (
+                <div className="text-center py-12">
+                  <BookOpen className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                  <p className="text-gray-500 text-lg">No courses found.</p>
+                  <p className="text-gray-400 text-sm mt-2">Create your first course to get started!</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {courses.map((course) => (
+                    <div
+                      key={course.id}
+                      className="group bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-5 border border-gray-200 hover:shadow-md hover:border-indigo-300 transition-all duration-300"
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1 min-w-0">
+                          <h3 className="text-lg font-semibold text-gray-900 mb-2 group-hover:text-indigo-600 transition-colors">
+                            {course.name}
+                          </h3>
+                          <p className="text-gray-600 text-sm leading-relaxed">
+                            {course.description}
+                          </p>
+                        </div>
+                        
+                        <div className="flex gap-2 ml-4">
+                          <button
+                            onClick={() => handleEdit(course)}
+                            className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                            title="Edit course"
+                          >
+                            <Edit2 className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(course.id)}
+                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                            title="Delete course"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

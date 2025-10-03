@@ -84,66 +84,109 @@ const TutorReports = () => {
   const dangerButtonStyle = { ...buttonStyle, backgroundColor: "#dc3545", color: "white" };
 
   return (
-    <div style={{ padding: "1rem" }}>
-      <h2>Tutor Reports</h2>
+<div className="p-6">
+  <h2 className="text-2xl font-bold text-gray-800 mb-6">Tutor Reports</h2>
 
-      {/* Tutor selection */}
-      <div>
-        <label>Select Tutor: </label>
-        <select value={selectedTutorId || ""} onChange={(e) => setSelectedTutorId(e.target.value)}>
-          <option value="">-- Select Tutor --</option>
-          {tutors.map((t) => (
-            <option key={t.id} value={t.id}>
-              {t.name}
-            </option>
-          ))}
-        </select>
+  {/* Tutor selection */}
+  <div className="w-full max-w-md">
+    <label className="block text-sm font-semibold text-gray-800 mb-2">
+      Select Tutor:
+    </label>
+    <div className="relative">
+      <select
+        value={selectedTutorId || ""}
+        onChange={(e) => setSelectedTutorId(e.target.value)}
+        className="w-full appearance-none border border-blue-300 bg-white text-gray-800 rounded-lg px-4 py-2 pr-10 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200"
+      >
+        <option value="">-- Select Tutor --</option>
+        {tutors.map((t) => (
+          <option key={t.id} value={t.id}>
+            {t.name}
+          </option>
+        ))}
+      </select>
+      <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-gray-500">
+        <svg
+          className="h-4 w-4"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            fillRule="evenodd"
+            d="M5.23 7.21a.75.75 0 011.06.02L10 11.584l3.71-4.353a.75.75 0 011.14.976l-4.25 5a.75.75 0 01-1.14 0l-4.25-5a.75.75 0 01.02-1.06z"
+            clipRule="evenodd"
+          />
+        </svg>
       </div>
+    </div>
+  </div>
 
-      {loading && <p>Loading …</p>}
-      {error && <p style={{ color: "red" }}>{error}</p>}
 
-      {/* Reports table */}
-      {reports.length > 0 && (
-        <table style={tableStyle}>
-          <thead>
-            <tr>
-              <th style={thTdStyle}>Course</th>
-              <th style={thTdStyle}>Student</th>
-              <th style={thTdStyle}>Topic</th>
-              <th style={thTdStyle}>Mode</th>
-              <th style={thTdStyle}>Attendance</th>
-              <th style={thTdStyle}>Date</th>
-              <th style={thTdStyle}>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {reports.map((report) => (
-              <tr key={report.id}>
-                <td style={thTdStyle}>{courseMap[report.course]}</td>
-                <td style={thTdStyle}>{studentMap[report.student]}</td>
-                <td style={thTdStyle}>{topicMap[report.topic]}</td>
-                <td style={thTdStyle}>{report.mode_of_learning}</td>
-                <td style={thTdStyle}>{report.attendance}</td>
-                <td style={thTdStyle}>{report.created_at}</td>
-                <td style={thTdStyle}>
-                  <button onClick={() => handleDeleteReport(report.id)} style={dangerButtonStyle}>
-                    Delete
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
 
-      {/* Create new report */}
-      {selectedTutorId && (
-        <TutorReportForm
-          tutorId={selectedTutorId}
-          onReportCreated={() => fetchReports(selectedTutorId)}
-        />
-      )}
+{/* Loading state */}
+{loading && (
+  <p className="text-blue-600 text-sm font-medium mb-4 animate-pulse">
+    Loading…
+  </p>
+)}
+
+{/* Error state */}
+{error && (
+  <p className="text-red-600 text-sm font-medium mb-4">
+    {error}
+  </p>
+)}
+
+{/* Reports table */}
+{reports.length > 0 && (
+  <div className="overflow-x-auto mt-6">
+    <table className="min-w-full bg-white border border-gray-200 rounded-lg shadow-sm">
+      <thead>
+        <tr className="bg-blue-100 text-blue-800 text-sm font-semibold">
+          <th className="px-4 py-2 text-left border-b">Course</th>
+          <th className="px-4 py-2 text-left border-b">Student</th>
+          <th className="px-4 py-2 text-left border-b">Topic</th>
+          <th className="px-4 py-2 text-left border-b">Mode</th>
+          <th className="px-4 py-2 text-left border-b">Attendance</th>
+          <th className="px-4 py-2 text-left border-b">Date</th>
+          <th className="px-4 py-2 text-left border-b">Actions</th>
+        </tr>
+      </thead>
+      <tbody className="text-sm text-gray-700">
+        {reports.map((report) => (
+          <tr key={report.id} className="hover:bg-gray-50 transition">
+            <td className="px-4 py-2 border-b">{courseMap[report.course]}</td>
+            <td className="px-4 py-2 border-b">{studentMap[report.student]}</td>
+            <td className="px-4 py-2 border-b">{topicMap[report.topic]}</td>
+            <td className="px-4 py-2 border-b">{report.mode_of_learning}</td>
+            <td className="px-4 py-2 border-b">{report.attendance}</td>
+            <td className="px-4 py-2 border-b">{report.created_at}</td>
+            <td className="px-4 py-2 border-b">
+              <button
+                onClick={() => handleDeleteReport(report.id)}
+                className="text-white bg-red-500 hover:bg-red-600 px-3 py-1 rounded-md text-xs font-medium transition duration-150"
+              >
+                Delete
+              </button>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+)}
+
+{/* Create new report form */}
+{selectedTutorId && (
+  <div className="mt-8">
+    <TutorReportForm
+      tutorId={selectedTutorId}
+      onReportCreated={() => fetchReports(selectedTutorId)}
+    />
+  </div>
+)}
+
     </div>
   );
 };
