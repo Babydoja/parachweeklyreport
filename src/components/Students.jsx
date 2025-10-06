@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { User, Edit2, Trash2, Plus, X, User2 } from "lucide-react";
 import API from "../api/api";
 import { toast } from "react-toastify";
-import Select from 'react-select';
+
 
 const Students = () => {
   const [students, setStudents] = useState([]);
@@ -13,6 +13,7 @@ const Students = () => {
     course_ids: [],
     tutor_id: "",
     mode: "",
+    active:true
   });
   const [editingId, setEditingId] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -59,10 +60,10 @@ const Students = () => {
   };
 
 const handleChange = (e) => {
-  const { name, value } = e.target;
+  const { name, value ,type,checked} = e.target;
   setFormData({
     ...formData,
-    [name]: value,
+    [name]: type === "checkbox" ? checked : value,
   });
 };
 
@@ -80,6 +81,7 @@ const handleChange = (e) => {
       course_names: selectedCourseNames,
       tutor: formData.tutor_id || null,
       mode: formData.mode,
+      active: formData.active,
     };
 
     try {
@@ -112,6 +114,7 @@ const handleChange = (e) => {
       course_ids: selectedCourseIds,
       tutor_id: student.tutor || "",
       mode: student.mode || "",
+      active: student.active, 
     });
 
     setEditingId(student.id);
@@ -151,17 +154,23 @@ const handleChange = (e) => {
     }
   };
 
-  // const toggleActive = async (student) => {
-  //   const updatedStatus = !student.active;
-  //   try {
-  //     await API.patch(`tutors/${student.id}/`, { active: updatedStatus });
-  //     setStudents((prev) =>
-  //       prev.map((t) => (t.id === .id ? { ...t, active: updatedStatus } : t))
-  //     );
-  //   } catch (err) {
-  //     console.error("Failed to toggle tutor status", err);
-  //   }
-  // }; 
+    // Toggle active status (works for both list and edit form)
+  const toggleActive = async (student) => {
+    const updatedStatus = !student.active;
+    try {
+      await API.patch(`students/${student.id}/`, { active: updatedStatus });
+      setStudents((prev) =>
+        prev.map((s) =>
+          s.id === student.id ? { ...s, active: updatedStatus } : s
+        )
+      );
+      toast.success(`Student is now ${updatedStatus ? "Active" : "Inactive"}`);
+    } catch (err) {
+      console.error("Failed to toggle student status", err);
+      toast.error("Failed to update student status");
+    }
+};
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -260,6 +269,18 @@ const handleChange = (e) => {
                   </select>
                 </div>
 
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    name="active"
+                    checked={formData.active}
+                    onChange={handleChange}
+                    className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+                  />
+                  <label className="text-sm font-medium text-gray-700">Active</label>
+                </div>
+
+
                 <button
                   type="submit"
                   disabled={loading}
@@ -332,6 +353,16 @@ const handleChange = (e) => {
                             <p className="text-gray-600 text-sm flex items-center gap-2">
                               <User2 size={10} /> Tutor: {student.tutor_name || "No tutor"}
                             </p>
+
+                             <p
+                              onClick={() => toggleActive(student)}
+                              title="Click to toggle status"
+                              className={`font-semibold cursor-pointer select-none mt-2 inline-block ${
+                                student.active ? "text-green-600" : "text-red-600"
+                              }`}
+                            >
+                              {student.active ? "Active" : "Inactive"}
+                          </p>
                           </div>
 
                           <div className="flex gap-2 ml-4">
