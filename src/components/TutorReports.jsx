@@ -21,28 +21,37 @@ const TutorReports = () => {
   const [tutorMap, setTutorMap] = useState({});
   const [courseMap, setCourseMap] = useState({});
   const [studentMap, setStudentMap] = useState({});
-  const [topicMap, setTopicMap] = useState({});
 
   // --- Fetch all mapping data ---
   const fetchData = async () => {
     try {
-      const [tutorsRes, coursesRes, studentsRes, topicsRes] = await Promise.all([
+      // 🧹 Removed topics fetching since it's paused
+      const [tutorsRes, coursesRes, studentsRes] = await Promise.all([
         API.get("/tutors/"),
         API.get("/courses/"),
         API.get("/students/"),
-        API.get("/topics/"),
       ]);
 
       setTutors(tutorsRes.data);
-      setTutorMap(tutorsRes.data.reduce((acc, t) => ({ ...acc, [t.id]: t.name }), {}));
-      setCourseMap(coursesRes.data.reduce((acc, c) => ({ ...acc, [c.id]: c.name }), {}));
+
+      setTutorMap(
+        tutorsRes.data.reduce((acc, t) => ({ ...acc, [t.id]: t.name }), {})
+      );
+
+      setCourseMap(
+        coursesRes.data.reduce((acc, c) => ({ ...acc, [c.id]: c.name }), {})
+      );
+
       setStudentMap(
         studentsRes.data.reduce(
-          (acc, s) => ({ ...acc, [s.id]: s.name || `${s.first_name} ${s.last_name}` || s.username }),
+          (acc, s) => ({
+            ...acc,
+            [s.id]:
+              s.name || `${s.first_name || ""} ${s.last_name || ""}` || s.username,
+          }),
           {}
         )
       );
-      setTopicMap(topicsRes.data.reduce((acc, t) => ({ ...acc, [t.id]: t.title }), {}));
     } catch (err) {
       setError("Failed to fetch reference data.");
       console.error(err);
@@ -144,42 +153,10 @@ const TutorReports = () => {
         </div>
       </div>
 
-      {/* Filters */}
-      {selectedTutorId && (
-        <div className="flex flex-col md:flex-row gap-4 mb-6">
-          {/* Date filter */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-800 mb-1">
-              Filter by Date:
-            </label>
-            <input
-              type="date"
-              value={dateFilter}
-              onChange={(e) => setDateFilter(e.target.value)}
-              className="border border-gray-300 rounded-lg px-3 py-2"
-            />
-          </div>
-
-          {/* Student filter */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-800 mb-1">
-              Filter by Student Name:
-            </label>
-            <input
-              type="text"
-              value={studentFilter}
-              onChange={(e) => setStudentFilter(e.target.value)}
-              placeholder="Enter student name"
-              className="border border-gray-300 rounded-lg px-3 py-2"
-            />
-          </div>
-        </div>
-      )}
-
       {/* Loading state */}
       {loading && (
         <p className="text-blue-600 text-sm font-medium mb-4 animate-pulse">
-          Loading reports...
+          Loading…
         </p>
       )}
 
@@ -208,7 +185,12 @@ const TutorReports = () => {
                 <tr key={report.id} className="hover:bg-gray-50 transition">
                   <td className="px-4 py-2 border-b">{courseMap[report.course]}</td>
                   <td className="px-4 py-2 border-b">{studentMap[report.student]}</td>
-                  <td className="px-4 py-2 border-b">{topicMap[report.topic]}</td>
+
+                  {/* ✅ Fixed topic display — now supports manual_topic */}
+                  <td className="px-4 py-2 border-b">
+                    {report.manual_topic || report.topic || "—"}
+                  </td>
+
                   <td className="px-4 py-2 border-b">{report.mode_of_learning}</td>
                   <td className="px-4 py-2 border-b">{report.attendance}</td>
                   <td className="px-4 py-2 border-b">

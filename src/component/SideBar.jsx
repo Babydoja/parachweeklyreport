@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Home, User, Settings, LogOut, Menu , X ,Calendar, Plus} from "lucide-react"; 
+import { Home, User, Settings, LogOut, Menu , X ,Calendar, LibraryBig ,Pen,School,} from "lucide-react"; 
 import { Link } from "react-router-dom";
 import parachlogo from '../assets/parachlogo.png'
 import logo from '../assets/logo.png'
