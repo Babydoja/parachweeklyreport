@@ -1,40 +1,40 @@
 import React, { useEffect, useState } from "react";
-import { User, Edit2, Trash2, Plus, X, User2 } from "lucide-react";
+import { User, Edit2, Trash2, Plus, ChevronLeft, ChevronRight } from "lucide-react";
 import API from "../api/api";
 import { toast } from "react-toastify";
-
 
 const Students = () => {
   const [students, setStudents] = useState([]);
   const [courses, setCourses] = useState([]);
   const [tutors, setTutors] = useState([]);
+  const [classes, setClasses] = useState([]);
   const [formData, setFormData] = useState({
     name: "",
-    course_ids: [],
+    course_id: "",
     tutor_id: "",
+    class_id: "",
     mode: "",
-    active:true
+    active: true,
   });
   const [editingId, setEditingId] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  // 👉 Pagination states
+  // Pagination + search
   const [currentPage, setCurrentPage] = useState(1);
   const studentsPerPage = 10;
-
-  // 👉 Search filter
   const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     fetchStudents();
     fetchCourses();
     fetchTutors();
+    fetchClasses();
   }, []);
 
   const fetchStudents = async () => {
     try {
       const res = await API.get("students/");
-      setStudents(res.data);
+      setStudents(Array.isArray(res.data) ? res.data : res.data.results || []);
     } catch (err) {
       console.error("Failed to fetch students", err);
       toast.error("Failed to fetch students");
@@ -44,7 +44,7 @@ const Students = () => {
   const fetchCourses = async () => {
     try {
       const res = await API.get("courses/");
-      setCourses(res.data);
+      setCourses(Array.isArray(res.data) ? res.data : res.data.results || []);
     } catch (err) {
       console.error("Failed to fetch courses", err);
     }
@@ -53,32 +53,46 @@ const Students = () => {
   const fetchTutors = async () => {
     try {
       const res = await API.get("tutors/");
-      setTutors(res.data);
+      setTutors(Array.isArray(res.data) ? res.data : res.data.results || []);
     } catch (err) {
       console.error("Failed to fetch tutors", err);
     }
   };
 
-const handleChange = (e) => {
-  const { name, value ,type,checked} = e.target;
-  setFormData({
-    ...formData,
-    [name]: type === "checkbox" ? checked : value,
-  });
-};
+  const fetchClasses = async () => {
+    try {
+      const res = await API.get("classes/");
+      const data = Array.isArray(res.data) ? res.data : res.data.results || [];
+      setClasses(data);
+    } catch (err) {
+      console.error("Failed to fetch classes", err);
+      toast.error("Failed to fetch class list");
+    }
+  };
 
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setFormData({
+      ...formData,
+      [name]: type === "checkbox" ? checked : value,
+    });
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
 
-    const selectedCourseNames = courses
-      .filter((course) => formData.course_ids.includes(course.id))
-      .map((course) => course.name);
+    const selectedCourse = courses.find(
+      (c) => c.id === parseInt(formData.course_id)
+    );
+    const selectedClass = classes.find(
+      (cls) => cls.id === parseInt(formData.class_id)
+    );
 
     const payload = {
       name: formData.name,
-      course_names: selectedCourseNames,
+      course_names: selectedCourse ? [selectedCourse.name] : [],
+      class_name: selectedClass ? selectedClass.name : "",
       tutor: formData.tutor_id || null,
       mode: formData.mode,
       active: formData.active,
@@ -93,7 +107,14 @@ const handleChange = (e) => {
         toast.success("Added student successfully");
       }
 
-      setFormData({ name: "", course_ids: [], tutor_id: "", mode: "" });
+      setFormData({
+        name: "",
+        course_id: "",
+        tutor_id: "",
+        class_id: "",
+        mode: "",
+        active: true,
+      });
       setEditingId(null);
       fetchStudents();
     } catch (err) {
@@ -105,19 +126,32 @@ const handleChange = (e) => {
   };
 
   const handleEdit = (student) => {
-    const selectedCourseIds = courses
-      .filter((course) => student.courses.includes(course.name))
-      .map((course) => course.id);
+    const foundCourse =
+      courses.find((c) => student.courses.includes(c.name)) || {};
+    const foundClass =
+      classes.find((cls) => student.myclass.includes(cls.name)) || {};
 
     setFormData({
       name: student.name,
-      course_ids: selectedCourseIds,
+      course_id: foundCourse.id || "",
       tutor_id: student.tutor || "",
+      class_id: foundClass.id || "",
       mode: student.mode || "",
-      active: student.active, 
+      active: student.active,
     });
-
     setEditingId(student.id);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingId(null);
+    setFormData({
+      name: "",
+      course_id: "",
+      tutor_id: "",
+      class_id: "",
+      mode: "",
+      active: true,
+    });
   };
 
   const handleDelete = async (id) => {
@@ -132,75 +166,41 @@ const handleChange = (e) => {
     }
   };
 
-  const handleCancelEdit = () => {
-    setEditingId(null);
-    setFormData({ name: "", course_ids: [], tutor_id: "", mode: "" });
-  };
-
-  // 👉 Apply search filter
+  // Pagination + filtering
   const filteredStudents = students.filter((student) =>
     student.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
-
-  // 👉 Pagination logic on filtered students
   const indexOfLastStudent = currentPage * studentsPerPage;
-  const indexOfFirstStudent = indexOfLastStudent - studentsPerPage;
-  const currentStudents = filteredStudents.slice(indexOfFirstStudent, indexOfLastStudent);
+  const currentStudents = filteredStudents.slice(
+    indexOfLastStudent - studentsPerPage,
+    indexOfLastStudent
+  );
   const totalPages = Math.ceil(filteredStudents.length / studentsPerPage);
 
   const goToPage = (page) => {
-    if (page >= 1 && page <= totalPages) {
-      setCurrentPage(page);
-    }
+    if (page >= 1 && page <= totalPages) setCurrentPage(page);
   };
-
-    // Toggle active status (works for both list and edit form)
-  const toggleActive = async (student) => {
-    const updatedStatus = !student.active;
-    try {
-      await API.patch(`students/${student.id}/`, { active: updatedStatus });
-      setStudents((prev) =>
-        prev.map((s) =>
-          s.id === student.id ? { ...s, active: updatedStatus } : s
-        )
-      );
-      toast.success(`Student is now ${updatedStatus ? "Active" : "Inactive"}`);
-    } catch (err) {
-      console.error("Failed to toggle student status", err);
-      toast.error("Failed to update student status");
-    }
-};
-
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-6xl mx-auto">
-        {/* Header */}
+      <div className="max-w-7xl mx-auto">
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">Student Management</h1>
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">
+            Student Management
+          </h1>
           <p className="text-gray-600">Add, edit, and manage your students</p>
         </div>
 
-        <div className="flex flex-col lg:flex-row gap-6">
-          {/* Add/Edit Student Form */}
-          <div className="w-full lg:w-[550px] flex-shrink-0">
+        <div className="flex flex-col lg:flex-row gap-8">
+          {/* Left: Form */}
+          <div className="w-full lg:w-[420px]">
             <div className="bg-white rounded-2xl shadow-xl p-6 border border-gray-100 sticky top-8">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-semibold text-gray-900">
-                  {editingId ? "Edit Student" : "Add New Student"}
-                </h2>
-                {editingId && (
-                  <button
-                    type="button"
-                    onClick={handleCancelEdit}
-                    className="text-gray-400 hover:text-gray-600 transition-colors"
-                  >
-                    <X className="w-5 h-5" />
-                  </button>
-                )}
-              </div>
+              <h2 className="text-xl font-semibold text-gray-900 mb-6">
+                {editingId ? "Edit Student" : "Add New Student"}
+              </h2>
 
               <form onSubmit={handleSubmit} className="space-y-4">
+                {/* Name */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Student Name
@@ -208,35 +208,34 @@ const handleChange = (e) => {
                   <input
                     type="text"
                     name="name"
-                    placeholder="Enter student name"
                     value={formData.name}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all"
+                    className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500"
                   />
                 </div>
 
-              <div>
-  <label className="block text-sm font-medium text-gray-700 mb-2">
-    Courses
-  </label>
-  <select
-    name="course_ids"
-    value={formData.course_ids}
-    onChange={handleChange}
-    required
-    className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all"
-  >
-    <option value="">Select a course</option>
-    {courses.map((course) => (
-      <option key={course.id} value={course.id}>
-        {course.name}
-      </option>
-    ))}
-  </select>
-</div>
+                {/* Course */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Course
+                  </label>
+                  <select
+                    name="course_id"
+                    value={formData.course_id}
+                    onChange={handleChange}
+                    className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500"
+                  >
+                    <option value="">Select a course</option>
+                    {courses.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
 
-
+                {/* Tutor */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Tutor
@@ -245,23 +244,44 @@ const handleChange = (e) => {
                     name="tutor_id"
                     value={formData.tutor_id}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all"
+                    className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500"
                   >
-                    <option value="">-- Select Tutor --</option>
-                    {tutors.map((tutor) => (
-                      <option key={tutor.id} value={tutor.id}>
-                        {tutor.name}
+                    <option value="">Select a tutor</option>
+                    {tutors.map((t) => (
+                      <option key={t.id} value={t.id}>
+                        {t.name}
                       </option>
                     ))}
                   </select>
                 </div>
 
-                <div className="flex gap-4">
+                {/* Class */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Class
+                  </label>
+                  <select
+                    name="class_id"
+                    value={formData.class_id}
+                    onChange={handleChange}
+                    className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500"
+                  >
+                    <option value="">Select a class</option>
+                    {classes.map((cls) => (
+                      <option key={cls.id} value={cls.id}>
+                        {cls.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Mode */}
+                <div>
                   <select
                     name="mode"
                     value={formData.mode}
                     onChange={handleChange}
-                    className="flex-1 px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all"
+                    className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500"
                   >
                     <option value="">Mode of Learning</option>
                     <option value="Physical">Physical</option>
@@ -269,6 +289,7 @@ const handleChange = (e) => {
                   </select>
                 </div>
 
+                {/* Active */}
                 <div className="flex items-center gap-2">
                   <input
                     type="checkbox"
@@ -277,149 +298,160 @@ const handleChange = (e) => {
                     onChange={handleChange}
                     className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
                   />
-                  <label className="text-sm font-medium text-gray-700">Active</label>
+                  <label className="text-sm font-medium text-gray-700">
+                    Active
+                  </label>
                 </div>
-
 
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full bg-[#3D3DD4] text-white py-3 rounded-lg font-medium disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  className="w-full bg-[#3D3DD4] text-white py-3 rounded-lg font-medium flex items-center justify-center gap-2"
                 >
                   {loading ? (
                     "Saving..."
                   ) : editingId ? (
                     <>
-                      <Edit2 className="w-4 h-4" />
-                      Update Student
+                      <Edit2 className="w-4 h-4" /> Update Student
                     </>
                   ) : (
                     <>
-                      <Plus className="w-4 h-4" />
-                      Add Student
+                      <Plus className="w-4 h-4" /> Add Student
                     </>
                   )}
                 </button>
+
+                {editingId && (
+                  <button
+                    type="button"
+                    onClick={handleCancelEdit}
+                    className="w-full mt-2 bg-gray-200 text-gray-800 py-2 rounded-lg"
+                  >
+                    Cancel Edit
+                  </button>
+                )}
               </form>
             </div>
           </div>
 
-          {/* Student List */}
-          <div className="flex-1">
-            <div className="bg-white rounded-2xl shadow-xl p-6 border border-gray-100">
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-xl font-semibold text-gray-900">
-                  All Students ({filteredStudents.length})
-                </h2>
-                <div>
-                  <input
-                    type="text"
-                    placeholder="Search Student by Name"
-                    value={searchTerm}
-                    onChange={(e) => {
-                      setSearchTerm(e.target.value);
-                      setCurrentPage(1); // reset to first page on search
-                    }}
-                    className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all"
-                  />
-                </div>
-              </div>
+          {/* Right: Student list */}
+          <div className="flex-1 bg-white rounded-2xl shadow-xl p-6 border border-gray-100">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-semibold text-gray-900">
+                Student List
+              </h2>
+              <input
+                type="text"
+                placeholder="Search students..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500"
+              />
+            </div>
 
-              {filteredStudents.length === 0 ? (
-                <div className="text-center py-12">
-                  <User className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                  <p className="text-gray-500 text-lg">No students found.</p>
-                  <p className="text-gray-400 text-sm mt-2">
-                    Add your first student to get started!
-                  </p>
-                </div>
-              ) : (
-                <>
-                  {/* Students Display */}
-                  <div className="space-y-4">
+            {currentStudents.length === 0 ? (
+              <p className="text-gray-600 text-center py-6">
+                No students found.
+              </p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="min-w-full text-sm text-left">
+                  <thead>
+                    <tr className="bg-gray-100 text-gray-700">
+                      <th className="py-3 px-4">Name</th>
+                      <th className="py-3 px-4">Class</th>
+                      <th className="py-3 px-4">Course</th>
+                      <th className="py-3 px-4">Tutor</th>
+                      <th className="py-3 px-4">Mode</th>
+                      <th className="py-3 px-4 text-center">Active</th>
+                      <th className="py-3 px-4 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
                     {currentStudents.map((student) => (
-                      <div
+                      <tr
                         key={student.id}
-                        className="group bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-5 border border-gray-200 hover:shadow-md hover:border-indigo-300 transition-all duration-300"
+                        className="border-b border-gray-200 hover:bg-gray-50"
                       >
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1 min-w-0">
-                            <h3 className="text-lg font-semibold text-gray-900 mb-2 group-hover:text-indigo-600 transition-colors">
-                              {student.name}
-                            </h3>
-                            <p className="text-gray-600 text-sm">
-                              Course: {student.courses?.join(", ") || "None"}
-                            </p>
-                            <p className="text-gray-600 text-sm flex items-center gap-2">
-                              <User2 size={10} /> Tutor: {student.tutor_name || "No tutor"}
-                            </p>
-
-                             <p
-                              onClick={() => toggleActive(student)}
-                              title="Click to toggle status"
-                              className={`font-semibold cursor-pointer select-none mt-2 inline-block ${
-                                student.active ? "text-green-600" : "text-red-600"
-                              }`}
-                            >
-                              {student.active ? "Active" : "Inactive"}
-                          </p>
-                          </div>
-
-                          <div className="flex gap-2 ml-4">
-                            <button
-                              onClick={() => handleEdit(student)}
-                              className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
-                              title="Edit student"
-                            >
-                              <Edit2 className="w-4 h-4" />
-                            </button>
-                            <button
-                              onClick={() => handleDelete(student.id)}
-                              className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                              title="Delete student"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
-                        </div>
-                      </div>
+                        <td className="py-3 px-4">{student.name}</td>
+                        <td className="py-3 px-4">
+                          {student.myclass?.join(", ") || "-"}
+                        </td>
+                        <td className="py-3 px-4">
+                          {student.courses?.join(", ") || "-"}
+                        </td>
+                        <td className="py-3 px-4">
+                          {student.tutor_name || "-"}
+                        </td>
+                        <td className="py-3 px-4">{student.mode || "-"}</td>
+                        <td className="py-3 px-4 text-center">
+                          <button
+                            onClick={() => {
+                              const updated = !student.active;
+                              API.patch(`students/${student.id}/`, {
+                                active: updated,
+                              })
+                                .then(fetchStudents)
+                                .then(() =>
+                                  toast.success(
+                                    `Marked as ${
+                                      updated ? "Active" : "Inactive"
+                                    }`
+                                  )
+                                )
+                                .catch(() =>
+                                  toast.error("Failed to update status")
+                                );
+                            }}
+                            className={`px-2 py-1 rounded-lg text-xs font-medium ${
+                              student.active
+                                ? "bg-green-100 text-green-700"
+                                : "bg-red-100 text-red-700"
+                            }`}
+                          >
+                            {student.active ? "Active" : "Inactive"}
+                          </button>
+                        </td>
+                        <td className="py-3 px-4 text-right flex justify-end gap-2">
+                          <button
+                            onClick={() => handleEdit(student)}
+                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"
+                          >
+                            <Edit2 className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(student.id)}
+                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </td>
+                      </tr>
                     ))}
-                  </div>
+                  </tbody>
+                </table>
+              </div>
+            )}
 
-                  {/* Pagination */}
-                  <div className="flex justify-center items-center gap-2 mt-6">
-                    <button
-                      onClick={() => goToPage(currentPage - 1)}
-                      disabled={currentPage === 1}
-                      className="px-3 py-1 rounded-md border text-sm disabled:opacity-50"
-                    >
-                      Prev
-                    </button>
-
-                    {[...Array(totalPages)].map((_, i) => (
-                      <button
-                        key={i + 1}
-                        onClick={() => goToPage(i + 1)}
-                        className={`px-3 py-1 rounded-md border text-sm ${
-                          currentPage === i + 1
-                            ? "bg-indigo-500 text-white"
-                            : "bg-white hover:bg-gray-100"
-                        }`}
-                      >
-                        {i + 1}
-                      </button>
-                    ))}
-
-                    <button
-                      onClick={() => goToPage(currentPage + 1)}
-                      disabled={currentPage === totalPages}
-                      className="px-3 py-1 rounded-md border text-sm disabled:opacity-50"
-                    >
-                      Next
-                    </button>
-                  </div>
-                </>
-              )}
+            {/* Pagination */}
+            <div className="flex justify-between items-center mt-4">
+              <button
+                onClick={() => goToPage(currentPage - 1)}
+                disabled={currentPage === 1}
+                className="flex items-center gap-1 px-3 py-1.5 bg-gray-200 rounded-lg text-sm disabled:opacity-50"
+              >
+                <ChevronLeft className="w-4 h-4" /> Prev
+              </button>
+              <span className="text-gray-700">
+                Page {currentPage} of {totalPages}
+              </span>
+              <button
+                onClick={() => goToPage(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className="flex items-center gap-1 px-3 py-1.5 bg-gray-200 rounded-lg text-sm disabled:opacity-50"
+              >
+                Next <ChevronRight className="w-4 h-4" />
+              </button>
             </div>
           </div>
         </div>
