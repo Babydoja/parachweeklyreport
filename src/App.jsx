@@ -24,7 +24,7 @@ export default function App() {
     
     <BrowserRouter>
     <ToastContainer/>
-    {/* <ProtectedPage/> */}
+    <ProtectedPage/>
       {/* Parent Flex Container */}
       <div className="flex">
         {/* Sidebar */}

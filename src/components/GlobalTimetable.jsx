@@ -48,16 +48,15 @@ const GlobalTimetable = () => {
 
   // 🎨 Define a color palette for tutors
   const tutorColors = [
-    "from-pink-100 to-pink-200 border-pink-400",
-    "from-green-100 to-green-200 border-green-400",
-    "from-yellow-100 to-yellow-200 border-yellow-400",
-    "from-purple-100 to-purple-200 border-purple-400",
-    "from-orange-100 to-orange-200 border-orange-400",
-    "from-teal-100 to-teal-200 border-teal-400",
-    "from-indigo-100 to-indigo-200 border-indigo-400",
-    "from-red-100 to-red-200 border-red-400",
-  ];
-
+    "from-pink-500 to-pink-600 border-pink-400",
+    "from-green-500 to-green-600 border-green-400",
+    "from-yellow-500 to-yellow-600 border-yellow-400",
+    "from-purple-500 to-purple-600 border-purple-400",
+    "from-orange-500 to-orange-600 border-orange-400",
+    "from-teal-500 to-teal-600 border-teal-400",
+    "from-indigo-500 to-indigo-600 border-indigo-400",
+    "from-red-500 to-red-600 border-red-400",
+  ]
   // 🔢 Map tutors to specific colors
   const tutorColorMap = {};
   let colorIndex = 0;
@@ -152,12 +151,12 @@ const GlobalTimetable = () => {
                               key={entry.id}
                               className={`rounded-lg p-3 text-sm transition-all duration-200 hover:shadow-md flex gap-[20px] items-center bg-gradient-to-br ${color}`}
                             >
-                              <div className="font-semibold text-blue-900 flex items-start gap-1">
-                                <Users className="w-4 h-4 flex-shrink-0 mt-0.5 text-blue-700" />
+                              <div className="font-semibold text-white flex items-start gap-1">
+                                <Users className="w-4 h-3 flex-shrink-0 mt-0.5 text-white" />
                                 <span className="line-clamp-2">{entry.subject || "Untitled"}</span>
                               </div>
-                              <div className="flex items-center gap-1 text-xs text-blue-700">
-                                <User className="w-3 h-3 flex-shrink-0" />
+                              <div className="flex items-center gap-1 text-xs text-white">
+                                <User className="w-3 h-3 flex-shrink-0 text-white" />
                                 <span className="truncate">{tutor}</span>
                               </div>
                             </div>
