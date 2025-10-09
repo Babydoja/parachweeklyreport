@@ -38,7 +38,7 @@ const AccessGate = ({ children }) => {
   // 👇 Show password form until authorized
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
-      <div className="bg-white p-8 rounded-lg shadow-md w-96">
+      <div className="bg-white p-8 md:w-[40%] w-full rounded-lg shadow-md  ">
         <h2 className="text-xl font-bold text-gray-800 mb-4 text-center">
           Enter Access Password
         </h2>

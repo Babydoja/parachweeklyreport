@@ -22,6 +22,7 @@ export default function App() {
   return (
     <AccessGate> 
       <BrowserRouter>
+      {/* <ProtectedPage/> */}
         <ToastContainer />
         {/* Parent Flex Container */}
         <div className="flex">

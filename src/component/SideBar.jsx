@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Home, User, Settings, LogOut, Menu , X ,Calendar, LibraryBig ,Pen,School,} from "lucide-react"; 
+import { Home, User, Settings, LogOut, Menu , X ,Calendar, LibraryBig ,Pen,School, BookOpenText, PenBox, Layers, Users, SquareUser,} from "lucide-react"; 
 import { Link } from "react-router-dom";
 import parachlogo from '../assets/parachlogo.png'
 import logo from '../assets/logo.png'
@@ -43,54 +43,36 @@ export default function Sidebar() {
           <li >
             <Link  to='/globaltable' className="flex items-center gap-3 cursor-pointer hover:text-blue-400">
               <User size={20} />
-              {isOpen && <p>Shedules</p>} 
+              {isOpen && <p>Schedule</p>} 
             </Link>
           </li>
-          {/* <li>
-            <Link to='/reportlist' className="flex items-center gap-3 cursor-pointer hover:text-blue-400">   
-                <Calendar size={20} />
-                {isOpen && <span>Weekly Reports </span>} 
-            </Link>
-          </li> */}
           <li>
             <Link to='/courses' className="flex items-center gap-3 cursor-pointer hover:text-blue-400">   
-                <Calendar size={20} />
+                <BookOpenText size={20} />
                 {isOpen && <span>All Courses </span>} 
             </Link>
           </li>
           <li>
             <Link to='/attendance' className="flex items-center gap-3 cursor-pointer hover:text-blue-400">   
-                <Calendar size={20} />
+                <PenBox size={20} />
                 {isOpen && <span>Student Attendance </span>} 
             </Link>
           </li>
           <li>
             <Link to='/class' className="flex items-center gap-3 cursor-pointer hover:text-blue-400">   
-                <Calendar size={20} />
+                <LibraryBig size={20} />
                 {isOpen && <span>Class </span>} 
             </Link>
           </li>
           <li>
             <Link to='/topics' className="flex items-center gap-3 cursor-pointer hover:text-blue-400">   
-                <Calendar size={20} />
+                <Layers size={20} />
                 {isOpen && <span>Topics </span>} 
             </Link>
           </li>
           <li>
-            <Link to='/globaltable' className="flex items-center gap-3 cursor-pointer hover:text-blue-400">   
-                <Calendar size={20} />
-                {isOpen && <span>Global Timetable </span>} 
-            </Link>
-          </li>
-          <li>
-            <Link to='/tutortable' className="flex items-center gap-3 cursor-pointer hover:text-blue-400">   
-                <Calendar size={20} />
-                {isOpen && <span>Tutor Timetable </span>} 
-            </Link>
-          </li>
-          <li>
             <Link to='/students' className="flex items-center gap-3 cursor-pointer hover:text-blue-400">   
-                <Calendar size={20} />
+                <Users size={20} />
                 {isOpen && <span>All Students </span>} 
             </Link>
           </li>
@@ -102,7 +84,7 @@ export default function Sidebar() {
           </li>
           <li>
             <Link to='/tutors' className="flex items-center gap-3 cursor-pointer hover:text-blue-400">   
-                <Calendar size={20} />
+                <SquareUser size={20} />
                 {isOpen && <span>All Parach Tutors </span>} 
             </Link>
           </li>
