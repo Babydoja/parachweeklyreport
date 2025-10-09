@@ -1,16 +1,13 @@
 import React, { useEffect, useState } from "react";
 import API from "../api/api";
-import { toast } from "react-toastify";
-import { data } from "react-router-dom";
 
 const TutorReportForm = ({ tutorId, onReportCreated }) => {
   const [courses, setCourses] = useState([]);
   const [students, setStudents] = useState([]);
-  const [topics, setTopics] = useState([]);
 
   const [course, setCourse] = useState("");
   const [student, setStudent] = useState("");
-  const [topic, setTopic] = useState("");
+  const [manualTopic, setManualTopic] = useState("");
   const [week, setWeek] = useState(1);
   const [modeOfLearning, setModeOfLearning] = useState("physical");
   const [attendance, setAttendance] = useState(0);
@@ -22,14 +19,12 @@ const TutorReportForm = ({ tutorId, onReportCreated }) => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [coursesRes, studentsRes, topicsRes] = await Promise.all([
+        const [coursesRes, studentsRes] = await Promise.all([
           API.get("/courses/"),
           API.get("/students/"),
-          API.get("/topics/"),
         ]);
         setCourses(coursesRes.data);
         setStudents(studentsRes.data);
-        setTopics(topicsRes.data)
       } catch (err) {
         console.error("Failed to fetch data:", err);
       }
@@ -47,7 +42,7 @@ const TutorReportForm = ({ tutorId, onReportCreated }) => {
       const payload = {
         course,
         student,
-        topic,
+        manual_topic: manualTopic, // 👈 new field sent to backend
         week,
         mode_of_learning: modeOfLearning,
         attendance,
@@ -55,12 +50,11 @@ const TutorReportForm = ({ tutorId, onReportCreated }) => {
 
       const res = await API.post(`/tutors/${tutorId}/reports/`, payload);
       setSuccess("Report created successfully!");
-      toast.success("Report created successfully!")
 
       // Reset form
       setCourse("");
       setStudent("");
-      setTopic("");
+      setManualTopic("");
       setWeek(1);
       setModeOfLearning("physical");
       setAttendance(0);
@@ -69,7 +63,6 @@ const TutorReportForm = ({ tutorId, onReportCreated }) => {
     } catch (err) {
       console.error("Report creation failed:", err.response?.data || err.message);
       setError("Failed to create report. Please try again.");
-      toast.error("Report creation failed:", err.response?.data || err.message);
     }
 
     setLoading(false);
@@ -122,31 +115,19 @@ const TutorReportForm = ({ tutorId, onReportCreated }) => {
           </select>
         </div>
 
-        {/* Topic */}
+        {/* Manual Topic Input */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Topic
+            Topic (manual entry)
           </label>
-          <select
-            value={topic}
-            onChange={(e) => setTopic(e.target.value)}
+          <input
+            type="text"
+            value={manualTopic}
+            onChange={(e) => setManualTopic(e.target.value)}
+            placeholder="Enter topic covered..."
             required
             className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="">-- Select Topic --</option>
-            {topics.map((t) => (
-              <option key={t.id} value={t.id}>
-                {t.title}
-              </option>
-            ))}
-          </select>
-
-          {/* <input
-            value={topic}
-            onChange={(e) => setTopic(e.target.value)}
-            required
-            className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          /> */}
+          />
         </div>
 
         {/* Mode of Learning */}
@@ -190,8 +171,8 @@ const TutorReportForm = ({ tutorId, onReportCreated }) => {
         </div>
 
         {/* Feedback messages */}
-        {/* {error && <p className="text-red-600 text-sm mt-2">{error}</p>}
-        {success && <p className="text-green-600 text-sm mt-2">{success}</p>} */}
+        {error && <p className="text-red-600 text-sm mt-2">{error}</p>}
+        {success && <p className="text-green-600 text-sm mt-2">{success}</p>}
       </form>
     </div>
   );

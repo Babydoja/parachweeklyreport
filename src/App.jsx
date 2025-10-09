@@ -1,3 +1,4 @@
+import React from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Sidebar from "./component/SideBar";
 import ReportsList from "./component/ReportsList";
@@ -14,41 +15,40 @@ import Student from "./components/Students";
 import Report from "./components/TutorReports";
 import Tutors from "./components/Tutors";
 import { ToastContainer } from "react-toastify";
-import ProtectedPage from "./component/ProtectedPage";
-
-
-
+// import ProtectedPage from "./component/ProtectedPage";
+import AccessGate from "./components/AccessGate";
 
 export default function App() {
   return (
-    
-    <BrowserRouter>
-    <ToastContainer/>
-    {/* <ProtectedPage/> */}
-      {/* Parent Flex Container */}
-      <div className="flex">
-        {/* Sidebar */}
-        <Sidebar />
+    <AccessGate> 
+      <BrowserRouter>
+        <ToastContainer />
+        {/* Parent Flex Container */}
+        <div className="flex">
+          {/* Sidebar */}
+          <Sidebar />
 
-        {/* Main Content Area */}
-        <div className="flex-1 ">
-          <Routes>
-            <Route path="/" element={<TutorReportDashboard />} />
-            <Route path="/reportlist" element={<ReportsList/>} />
-            <Route path="/addreport" element={<AddReport/>} />
-            <Route path="/editreport/:id" element={<EditableReport/>} />
-            <Route path='/courses' element={<Courses/>} />
-            <Route path='/attendance' element={<Attendance/>} />
-            <Route path='/class' element={<Class/>} />
-            <Route path='/topics' element={<Topics/>} />
-            <Route path='/globaltable' element={<Global/>} />
-            <Route path='/tutortable' element={<Table/>} />
-            <Route path='/students' element={<Student/>} />
-            <Route path='/tutorreport' element={<Report/>} />
-            <Route path='/tutors' element={<Tutors/>} />
-          </Routes>
+          {/* Main Content Area */}
+          <div className="flex-1 ">
+            <Routes>
+              <Route path="/" element={<TutorReportDashboard />} />
+              <Route path="/reportlist" element={<ReportsList />} />
+              <Route path="/addreport" element={<AddReport />} />
+              <Route path="/editreport/:id" element={<EditableReport />} />
+              <Route path="/courses" element={<Courses />} />
+              <Route path="/attendance" element={<Attendance />} />
+              <Route path="/class" element={<Class />} />
+              <Route path="/topics" element={<Topics />} />
+              <Route path="/globaltable" element={<Global />} />
+              <Route path="/tutortable" element={<Table />} />
+              <Route path="/students" element={<Student />} />
+              <Route path="/tutorreport" element={<Report />} />
+              <Route path="/tutors" element={<Tutors />} />
+            </Routes>
+          </div>
         </div>
-      </div>
-    </BrowserRouter>
+      </BrowserRouter>
+    </AccessGate>
   );
 }
+

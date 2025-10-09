@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import API from "../api/api";
 
+const ITEMS_PER_PAGE = 8;
+
 const CourseTopicManager = () => {
   const [courses, setCourses] = useState([]);
   const [selectedCourseId, setSelectedCourseId] = useState(null);
@@ -13,13 +15,17 @@ const CourseTopicManager = () => {
   const [editingTopicId, setEditingTopicId] = useState(null);
   const [editingTitle, setEditingTitle] = useState("");
 
+  // pagination states
+  const [coursePage, setCoursePage] = useState(1);
+  const [topicPage, setTopicPage] = useState(1);
+
   useEffect(() => {
     const fetchCourses = async () => {
       setLoadingCourses(true);
       setError(null);
       try {
         const res = await API.get("courses/");
-        setCourses(res.data);
+        setCourses(res.data.results || res.data);
       } catch {
         setError("Failed to fetch courses");
       }
@@ -40,7 +46,7 @@ const CourseTopicManager = () => {
       setError(null);
       try {
         const res = await API.get(`topics/${selectedCourseId}/`);
-        setTopics(res.data);
+        setTopics(res.data.results || res.data);
       } catch {
         setError("Failed to fetch topics");
       }
@@ -96,6 +102,14 @@ const CourseTopicManager = () => {
       setError("Failed to delete topic");
     }
   };
+
+  // pagination helpers
+  const paginate = (data, page) => {
+    const start = (page - 1) * ITEMS_PER_PAGE;
+    return data.slice(start, start + ITEMS_PER_PAGE);
+  };
+
+  const totalPages = (data) => Math.ceil(data.length / ITEMS_PER_PAGE);
 
   const styles = {
     container: {
@@ -178,22 +192,26 @@ const CourseTopicManager = () => {
       transition: "background-color 0.3s ease",
       fontSize: "0.9rem",
     },
-    editButton: {
-      backgroundColor: "#3498db",
-      color: "#fff",
+    paginationContainer: {
+      display: "flex",
+      justifyContent: "center",
+      alignItems: "center",
+      gap: "0.5rem",
+      marginTop: "1rem",
     },
-    saveButton: {
-      backgroundColor: "#2ecc71",
-      color: "#fff",
-    },
-    cancelButton: {
-      backgroundColor: "#95a5a6",
-      color: "#fff",
-    },
-    deleteButton: {
-      backgroundColor: "#e74c3c",
-      color: "#fff",
-    },
+    pageButton: (isActive) => ({
+      padding: "0.35rem 0.8rem",
+      borderRadius: "4px",
+      border: "none",
+      cursor: "pointer",
+      backgroundColor: isActive ? "#3498db" : "#ecf0f1",
+      color: isActive ? "#fff" : "#2c3e50",
+      fontWeight: "600",
+    }),
+    editButton: { backgroundColor: "#3498db", color: "#fff" },
+    saveButton: { backgroundColor: "#2ecc71", color: "#fff" },
+    cancelButton: { backgroundColor: "#95a5a6", color: "#fff" },
+    deleteButton: { backgroundColor: "#e74c3c", color: "#fff" },
     addTopicContainer: {
       display: "flex",
       alignItems: "center",
@@ -210,7 +228,12 @@ const CourseTopicManager = () => {
     },
   };
 
-  const selectedCourse = (courses || []).find(c => String(c.id) === String(selectedCourseId));
+  const selectedCourse = (courses || []).find(
+    (c) => String(c.id) === String(selectedCourseId)
+  );
+
+  const paginatedCourses = paginate(courses, coursePage);
+  const paginatedTopics = paginate(topics, topicPage);
 
   return (
     <div style={styles.container}>
@@ -220,17 +243,36 @@ const CourseTopicManager = () => {
         {loadingCourses ? (
           <p style={styles.placeholderText}>Loading courses...</p>
         ) : (
-          <ul style={{ paddingLeft: 0, margin: 0 }}>
-            {courses.map((course) => (
-              <li
-                key={course.id}
-                style={styles.courseItem(selectedCourseId === course.id)}
-                onClick={() => setSelectedCourseId(course.id)}
-              >
-                {course.name}
-              </li>
-            ))}
-          </ul>
+          <>
+            <ul style={{ paddingLeft: 0, margin: 0 }}>
+              {paginatedCourses.map((course) => (
+                <li
+                  key={course.id}
+                  style={styles.courseItem(selectedCourseId === course.id)}
+                  onClick={() => {
+                    setSelectedCourseId(course.id);
+                    setTopicPage(1);
+                  }}
+                >
+                  {course.name}
+                </li>
+              ))}
+            </ul>
+
+            {totalPages(courses) > 1 && (
+              <div style={styles.paginationContainer}>
+                {Array.from({ length: totalPages(courses) }).map((_, i) => (
+                  <button
+                    key={i}
+                    style={styles.pageButton(coursePage === i + 1)}
+                    onClick={() => setCoursePage(i + 1)}
+                  >
+                    {i + 1}
+                  </button>
+                ))}
+              </div>
+            )}
+          </>
         )}
       </div>
 
@@ -239,16 +281,18 @@ const CourseTopicManager = () => {
         <h2 style={styles.header}>
           Topics {selectedCourse ? `for ${selectedCourse.name}` : ""}
         </h2>
- 
+
         {loadingTopics ? (
           <p style={styles.placeholderText}>Loading topics...</p>
         ) : selectedCourseId ? (
           <>
             {error && <p style={styles.errorMessage}>{error}</p>}
-            {topics.length === 0 && <p style={styles.placeholderText}>No topics found.</p>}
+            {topics.length === 0 && (
+              <p style={styles.placeholderText}>No topics found.</p>
+            )}
 
             <ul style={styles.topicList}>
-              {topics.map((topic) => (
+              {paginatedTopics.map((topic) => (
                 <li key={topic.id} style={styles.topicItem}>
                   {editingTopicId === topic.id ? (
                     <>
@@ -294,6 +338,22 @@ const CourseTopicManager = () => {
               ))}
             </ul>
 
+            {/* Pagination for topics */}
+            {totalPages(topics) > 1 && (
+              <div style={styles.paginationContainer}>
+                {Array.from({ length: totalPages(topics) }).map((_, i) => (
+                  <button
+                    key={i}
+                    style={styles.pageButton(topicPage === i + 1)}
+                    onClick={() => setTopicPage(i + 1)}
+                  >
+                    {i + 1}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* Add topic input */}
             <div style={styles.addTopicContainer}>
               <input
                 placeholder="New topic title"
