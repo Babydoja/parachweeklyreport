@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import API from "../api/api";
 import { toast } from "react-toastify";
+import { Pencil, Trash2 } from "lucide-react";
 
 const ClassManager = () => {
   const [classes, setClasses] = useState([]);
@@ -9,34 +10,50 @@ const ClassManager = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const [newClass, setNewClass] = useState({
+  const [formData, setFormData] = useState({
+    id: null,
     name: "",
     course_name: "",
     tutor_name: "",
     description: "",
   });
 
-  // Pagination state
+  // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  const fetchClasses = async () => {
-    setLoading(true);
-    try {
-      const res = await API.get("classes/");
-      setClasses(Array.isArray(res.data) ? res.data : res.data.results || []);
-      setError(null);
-    } catch (err) {
-      console.error("Failed to fetch classes:", err.response?.data || err.message);
-      setError("Failed to fetch class list");
-    } finally {
-      setLoading(false);
+const fetchClasses = async () => {
+  setLoading(true);
+  try {
+    let allClasses = [];
+    let nextUrl = "classes/";
+
+    // Loop through all backend pages until 'next' is null
+    while (nextUrl) {
+      const res = await API.get(nextUrl);
+      const data = res.data.results || res.data;
+
+      allClasses = [...allClasses, ...data];
+      nextUrl = res.data.next ? res.data.next.replace(API.defaults.baseURL, "") : null;
     }
-  };
+
+    setClasses(allClasses);
+    setError(null);
+  } catch (err) {
+    console.error("Failed to fetch classes:", err.response?.data || err.message);
+    setError("Failed to fetch class list");
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   const fetchOptions = async () => {
     try {
-      const [coursesRes, tutorsRes] = await Promise.all([API.get("courses/"), API.get("tutors/")]);
+      const [coursesRes, tutorsRes] = await Promise.all([
+        API.get("courses/"),
+        API.get("tutors/"),
+      ]);
       setCourses(coursesRes.data);
       setTutors(tutorsRes.data);
     } catch (err) {
@@ -52,19 +69,28 @@ const ClassManager = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setNewClass((prev) => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
-
+ 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await API.post("classes/", newClass);
-      toast.success("Class created!");
+      if (formData.id) {
+        // Update existing class
+        await API.put(`classes/${formData.id}/`, formData);
+        toast.success("Class updated successfully!");
+      } else {
+        // Create new class
+        await API.post("classes/", formData);
+        toast.success("Class created successfully!");
+        
+
+      }
       fetchClasses();
-      setNewClass({ name: "", course_name: "", tutor_name: "", description: "" });
+      setFormData({ id: null, name: "", course_name: "", tutor_name: "", description: "" });
     } catch (err) {
-      console.error("Error creating class:", err.response?.data || err.message);
-      toast.error("Error creating class. Check console for details.");
+      console.error("Error saving class:", err.response?.data || err.message);
+      toast.error("Failed to save class. Check console for details.");
     }
   };
 
@@ -81,14 +107,33 @@ const ClassManager = () => {
     }
   };
 
-  if (loading) return <p className="text-center text-gray-600">Loading...</p>;
-  if (error) return <p className="text-center text-red-600">{error}</p>;
+  const handleEdit = (cls) => {
+    // Fill form inputs with selected class data for editing
+    setFormData({
+      id: cls.id,
+      name: cls.name,
+      course_name: cls.course?.name || "",
+      tutor_name: cls.tutor?.name || "",
+      description: cls.description || "",
+    });
+  };
 
-  // Pagination calculations
+  // Pagination logic
   const indexOfLast = currentPage * itemsPerPage;
   const indexOfFirst = indexOfLast - itemsPerPage;
   const currentClasses = classes.slice(indexOfFirst, indexOfLast);
   const totalPages = Math.ceil(classes.length / itemsPerPage);
+
+  const handleNext = () => {
+    if (currentPage < totalPages) setCurrentPage((prev) => prev + 1);
+  };
+
+  const handlePrev = () => {
+    if (currentPage > 1) setCurrentPage((prev) => prev - 1);
+  };
+
+  if (loading) return <p className="text-center text-gray-600">Loading...</p>;
+  if (error) return <p className="text-center text-red-600">{error}</p>;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -103,7 +148,7 @@ const ClassManager = () => {
               <input
                 type="text"
                 name="name"
-                value={newClass.name}
+                value={formData.name}
                 onChange={handleChange}
                 required
                 placeholder="Enter class name"
@@ -115,7 +160,7 @@ const ClassManager = () => {
               <label className="block text-sm font-medium text-gray-700 mb-1">Course:</label>
               <select
                 name="course_name"
-                value={newClass.course_name}
+                value={formData.course_name}
                 onChange={handleChange}
                 required
                 className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
@@ -131,7 +176,7 @@ const ClassManager = () => {
               <label className="block text-sm font-medium text-gray-700 mb-1">Tutor:</label>
               <select
                 name="tutor_name"
-                value={newClass.tutor_name}
+                value={formData.tutor_name}
                 onChange={handleChange}
                 required
                 className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
@@ -147,7 +192,7 @@ const ClassManager = () => {
               <label className="block text-sm font-medium text-gray-700 mb-1">Description:</label>
               <textarea
                 name="description"
-                value={newClass.description}
+                value={formData.description}
                 onChange={handleChange}
                 placeholder="Enter class description"
                 className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
@@ -158,7 +203,7 @@ const ClassManager = () => {
               type="submit"
               className="w-full bg-[#3D3DD4] text-white py-3 rounded-lg font-medium hover:bg-[#2e2ec1] transition-colors"
             >
-              Create Class
+              {formData.id ? "Update Class" : "Create Class"}
             </button>
           </form>
 
@@ -179,30 +224,47 @@ const ClassManager = () => {
                       <p className="text-sm text-gray-600 mt-1">{cls.description}</p>
                     )}
                   </div>
-                  <button
-                    onClick={() => handleDelete(cls.id)}
-                    className="ml-4 bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 transition-colors text-sm"
-                  >
-                    Delete
-                  </button>
+                  <div className="flex gap-2 items-center">
+                    <Pencil
+                      size={15}
+                      onClick={() => handleEdit(cls)}
+                      className="text-blue-500 cursor-pointer"
+                    />
+                    <Trash2
+                      size={15}
+                      onClick={() => handleDelete(cls.id)}
+                      className="text-red-500 cursor-pointer"
+                    />
+                  </div>
                 </li>
               ))}
             </ul>
 
-            {/* Pagination */}
+            {/* Simple Next & Prev Pagination */}
             {classes.length > itemsPerPage && (
-              <div className="flex justify-center mt-4 space-x-2">
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                  <button
-                    key={page}
-                    onClick={() => setCurrentPage(page)}
-                    className={`px-3 py-1 rounded ${
-                      page === currentPage ? "bg-indigo-500 text-white" : "bg-gray-200 text-gray-700"
-                    }`}
-                  >
-                    {page}
-                  </button>
-                ))}
+              <div className="flex justify-center mt-4 space-x-3">
+                <button
+                  onClick={handlePrev}
+                  disabled={currentPage === 1}
+                  className={`px-4 py-2 rounded ${
+                    currentPage === 1
+                      ? "bg-gray-300 text-gray-500"
+                      : "bg-indigo-500 text-white hover:bg-indigo-600"
+                  }`}
+                >
+                  Prev
+                </button>
+                <button
+                  onClick={handleNext}
+                  disabled={currentPage === totalPages}
+                  className={`px-4 py-2 rounded ${
+                    currentPage === totalPages
+                      ? "bg-gray-300 text-gray-500"
+                      : "bg-indigo-500 text-white hover:bg-indigo-600"
+                  }`}
+                >
+                  Next
+                </button>
               </div>
             )}
           </div>
