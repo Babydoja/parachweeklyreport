@@ -61,14 +61,22 @@ const Students = () => {
 
   const fetchClasses = async () => {
     try {
-      const res = await API.get("classes/");
-      const data = Array.isArray(res.data) ? res.data : res.data.results || [];
-      setClasses(data);
+      let allClasses = [];
+      let nextUrl = "classes/";
+      while (nextUrl) {
+        const res = await API.get(nextUrl);
+        const data = res.data.results || res.data;
+        allClasses = [...allClasses, ...data];
+        nextUrl = res.data.next ? res.data.next.replace(API.defaults.baseURL, "") : null;
+      }
+
+      setClasses(allClasses);
     } catch (err) {
-      console.error("Failed to fetch classes", err);
+      console.error("Failed to fetch classes:", err);
       toast.error("Failed to fetch class list");
     }
   };
+
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
