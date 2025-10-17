@@ -21,7 +21,7 @@ import AccessGate from "./components/AccessGate";
 export default function App() {
   return (
     <AccessGate> 
-      <BrowserRouter>
+      <BrowserRouter basename="/">
       {/* <ProtectedPage/> */}
         <ToastContainer />
         {/* Parent Flex Container */}
