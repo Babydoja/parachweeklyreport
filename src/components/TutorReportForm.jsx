@@ -16,6 +16,7 @@ const TutorReportForm = ({ tutorId, onReportCreated }) => {
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
 
+  // Fetch all courses & students once
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -32,6 +33,26 @@ const TutorReportForm = ({ tutorId, onReportCreated }) => {
     fetchData();
   }, []);
 
+  // ✅ Auto-fetch latest week per tutor-student combination
+  useEffect(() => {
+    const fetchStudentWeek = async () => {
+      if (!tutorId || !student) return;
+      try {
+        const res = await API.get(`/tutors/${tutorId}/reports/`);
+        const studentReports = res.data.filter((r) => r.student === parseInt(student));
+        if (studentReports.length > 0) {
+          const latest = studentReports[studentReports.length - 1];
+          setWeek(latest.week + 1);
+        } else {
+          setWeek(1);
+        }
+      } catch (err) {
+        console.error("Failed to fetch week for student:", err);
+      }
+    };
+    fetchStudentWeek();
+  }, [tutorId, student]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -42,7 +63,7 @@ const TutorReportForm = ({ tutorId, onReportCreated }) => {
       const payload = {
         course,
         student,
-        manual_topic: manualTopic, // 👈 new field sent to backend
+        manual_topic: manualTopic,
         week,
         mode_of_learning: modeOfLearning,
         attendance,
@@ -51,13 +72,15 @@ const TutorReportForm = ({ tutorId, onReportCreated }) => {
       const res = await API.post(`/tutors/${tutorId}/reports/`, payload);
       setSuccess("Report created successfully!");
 
-      // Reset form
+      // Reset some fields
       setCourse("");
       setStudent("");
       setManualTopic("");
-      setWeek(1);
       setModeOfLearning("physical");
       setAttendance(0);
+
+      // Increment next week number automatically
+      setWeek((prev) => prev + 1);
 
       if (onReportCreated) onReportCreated(res.data);
     } catch (err) {
@@ -127,6 +150,19 @@ const TutorReportForm = ({ tutorId, onReportCreated }) => {
             placeholder="Enter topic covered..."
             required
             className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+
+        {/* Week Display */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Week Number
+          </label>
+          <input
+            type="number"
+            value={week}
+            readOnly
+            className="w-full border border-gray-300 rounded-md px-3 py-2 bg-gray-100 focus:outline-none"
           />
         </div>
 

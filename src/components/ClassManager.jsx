@@ -83,8 +83,6 @@ const fetchClasses = async () => {
         // Create new class
         await API.post("classes/", formData);
         toast.success("Class created successfully!");
-        
-
       }
       fetchClasses();
       setFormData({ id: null, name: "", course_name: "", tutor_name: "", description: "" });

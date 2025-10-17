@@ -25,7 +25,6 @@ const TutorReports = () => {
   // --- Fetch all mapping data ---
   const fetchData = async () => {
     try {
-      // 🧹 Removed topics fetching since it's paused
       const [tutorsRes, coursesRes, studentsRes] = await Promise.all([
         API.get("/tutors/"),
         API.get("/courses/"),
@@ -56,7 +55,7 @@ const TutorReports = () => {
       setError("Failed to fetch reference data.");
       console.error(err);
     }
-  };
+    };
 
   // --- Fetch reports for a tutor ---
   const fetchReports = async (tutorId) => {
@@ -64,8 +63,9 @@ const TutorReports = () => {
     setError(null);
     try {
       const res = await API.get(`/tutors/${tutorId}/reports/`);
-      setReports(res.data);
-      setCurrentPage(1); // reset to first page when tutor changes
+      //setReports(res.data);
+      setReports(res.data.reverse());
+      setCurrentPage(1);
     } catch (err) {
       setReports([]);
       setError("Failed to fetch tutor reports.");
@@ -175,6 +175,7 @@ const TutorReports = () => {
                 <th className="px-4 py-2 text-left border-b">Student</th>
                 <th className="px-4 py-2 text-left border-b">Topic</th>
                 <th className="px-4 py-2 text-left border-b">Mode</th>
+                <th className="px-4 py-2 text-left border-b">Week</th>
                 <th className="px-4 py-2 text-left border-b">Attendance</th>
                 <th className="px-4 py-2 text-left border-b">Date</th>
                 <th className="px-4 py-2 text-left border-b">Actions</th>
@@ -185,13 +186,11 @@ const TutorReports = () => {
                 <tr key={report.id} className="hover:bg-gray-50 transition">
                   <td className="px-4 py-2 border-b">{courseMap[report.course]}</td>
                   <td className="px-4 py-2 border-b">{studentMap[report.student]}</td>
-
-                  {/* ✅ Fixed topic display — now supports manual_topic */}
                   <td className="px-4 py-2 border-b">
                     {report.manual_topic || report.topic || "—"}
                   </td>
-
                   <td className="px-4 py-2 border-b">{report.mode_of_learning}</td>
+                  <td className="px-4 py-2 border-b">{report.week}</td>
                   <td className="px-4 py-2 border-b">{report.attendance}</td>
                   <td className="px-4 py-2 border-b">
                     {new Date(report.created_at).toLocaleDateString()}
