@@ -77,6 +77,8 @@ const Students = () => {
     }
   };
 
+  
+
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;

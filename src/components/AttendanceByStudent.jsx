@@ -39,15 +39,31 @@ const AttendanceByStudent = () => {
       setLoadingStudents(false);
     };
 
-    const fetchClasses = async () => {
-      try {
-        const res = await API.get("classes/");
-        const data = res.data.results || res.data;
-        setClasses(data);
-      } catch {
-        notify("Failed to fetch classes", "error");
-      }
-    };
+  const fetchClasses = async () => {
+  try {
+    let allClasses = [];
+    let nextUrl = "classes/";
+
+    while (nextUrl) {
+      const res = await API.get(nextUrl);
+      const data = res.data.results || res.data;
+      allClasses = [...allClasses, ...data];
+
+      // Use the full next URL if available (absolute or relative)
+      nextUrl = res.data.next || null;
+    }
+
+    // Sort newest-first (by ID)
+    allClasses.sort((a, b) => (b.id || 0) - (a.id || 0));
+
+    setClasses(allClasses);
+  } catch (error) {
+    console.error("Error fetching classes:", error);
+    notify("Failed to fetch classes", "error");
+  }
+};
+
+
 
     fetchStudents();
     fetchClasses();
