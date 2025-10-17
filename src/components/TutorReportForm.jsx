@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from "react";
 import API from "../api/api";
 
-const TutorReportForm = ({ tutorId, onReportCreated }) => {
+const TutorReportForm = ({ tutorId, onReportCreated, students = [] }) => {
   const [courses, setCourses] = useState([]);
-  const [students, setStudents] = useState([]);
 
   const [course, setCourse] = useState("");
   const [student, setStudent] = useState("");
@@ -16,30 +15,26 @@ const TutorReportForm = ({ tutorId, onReportCreated }) => {
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
 
-  // Fetch all courses & students once
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchCourses = async () => {
       try {
-        const [coursesRes, studentsRes] = await Promise.all([
-          API.get("/courses/"),
-          API.get("/students/"),
-        ]);
-        setCourses(coursesRes.data);
-        setStudents(studentsRes.data);
+        const res = await API.get("/courses/");
+        setCourses(res.data);
       } catch (err) {
-        console.error("Failed to fetch data:", err);
+        console.error("Failed to fetch courses:", err);
       }
     };
-    fetchData();
+    fetchCourses();
   }, []);
 
-  // ✅ Auto-fetch latest week per tutor-student combination
   useEffect(() => {
     const fetchStudentWeek = async () => {
       if (!tutorId || !student) return;
       try {
         const res = await API.get(`/tutors/${tutorId}/reports/`);
-        const studentReports = res.data.filter((r) => r.student === parseInt(student));
+        const studentReports = res.data.filter(
+          (r) => String(r.student) === String(student)
+        );
         if (studentReports.length > 0) {
           const latest = studentReports[studentReports.length - 1];
           setWeek(latest.week + 1);
@@ -71,15 +66,11 @@ const TutorReportForm = ({ tutorId, onReportCreated }) => {
 
       const res = await API.post(`/tutors/${tutorId}/reports/`, payload);
       setSuccess("Report created successfully!");
-
-      // Reset some fields
       setCourse("");
       setStudent("");
       setManualTopic("");
       setModeOfLearning("physical");
       setAttendance(0);
-
-      // Increment next week number automatically
       setWeek((prev) => prev + 1);
 
       if (onReportCreated) onReportCreated(res.data);
@@ -87,7 +78,6 @@ const TutorReportForm = ({ tutorId, onReportCreated }) => {
       console.error("Report creation failed:", err.response?.data || err.message);
       setError("Failed to create report. Please try again.");
     }
-
     setLoading(false);
   };
 
@@ -132,7 +122,9 @@ const TutorReportForm = ({ tutorId, onReportCreated }) => {
             <option value="">-- Select Student --</option>
             {students.map((s) => (
               <option key={s.id} value={s.id}>
-                {s.name || `${s.first_name || ""} ${s.last_name || ""}` || s.username}
+                {s.name ||
+                  `${s.first_name || ""} ${s.last_name || ""}` ||
+                  s.username}
               </option>
             ))}
           </select>
@@ -206,7 +198,6 @@ const TutorReportForm = ({ tutorId, onReportCreated }) => {
           </button>
         </div>
 
-        {/* Feedback messages */}
         {error && <p className="text-red-600 text-sm mt-2">{error}</p>}
         {success && <p className="text-green-600 text-sm mt-2">{success}</p>}
       </form>
