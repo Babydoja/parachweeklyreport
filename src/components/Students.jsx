@@ -1,5 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { User, Edit2, Trash2, Plus, ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  User,
+  Edit2,
+  Trash2,
+  Plus,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import API from "../api/api";
 import { toast } from "react-toastify";
 
@@ -67,18 +74,16 @@ const Students = () => {
         const res = await API.get(nextUrl);
         const data = res.data.results || res.data;
         allClasses = [...allClasses, ...data];
-        nextUrl = res.data.next ? res.data.next.replace(API.defaults.baseURL, "") : null;
+        nextUrl = res.data.next
+          ? res.data.next.replace(API.defaults.baseURL, "")
+          : null;
       }
-
       setClasses(allClasses);
     } catch (err) {
       console.error("Failed to fetch classes:", err);
       toast.error("Failed to fetch class list");
     }
   };
-
-  
-
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -191,6 +196,15 @@ const Students = () => {
     if (page >= 1 && page <= totalPages) setCurrentPage(page);
   };
 
+  // 🟢 Filter classes based on selected tutor
+  const filteredClasses = formData.tutor_id
+    ? classes.filter((cls) =>
+        cls.tutor_id
+          ? cls.tutor_id === parseInt(formData.tutor_id)
+          : cls.tutor?.id === parseInt(formData.tutor_id)
+      )
+    : classes;
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
@@ -277,7 +291,7 @@ const Students = () => {
                     className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500"
                   >
                     <option value="">Select a class</option>
-                    {classes.map((cls) => (
+                    {filteredClasses.map((cls) => (
                       <option key={cls.id} value={cls.id}>
                         {cls.name}
                       </option>
