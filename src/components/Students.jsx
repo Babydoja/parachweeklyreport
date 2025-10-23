@@ -224,22 +224,69 @@ const Students = () => {
               </h2>
 
               <form onSubmit={handleSubmit} className="space-y-4">
-                {/* Name */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Student Name
-                  </label>
-                  <input
-                    type="text"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleChange}
-                    required
-                    className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500"
-                  />
-                </div>
+          
+                       
 
-                {/* Course */}
+                        {/* Download PDF button (Student list) */}
+                        <div className="pt-2">
+                          <button
+                          type="button"
+                          onClick={async () => {
+                            try {
+                            const { jsPDF } = await import("jspdf");
+                            const doc = new jsPDF();
+                            doc.setFontSize(14);
+                            doc.text("Student List", 14, 20);
+                            doc.setFontSize(10);
+
+                            const rows = students.map((s) => [
+                              s.name || "-",
+                              Array.isArray(s.myclass) ? s.myclass.join(", ") : s.myclass || "-",
+                              Array.isArray(s.courses) ? s.courses.join(", ") : s.courses || "-",
+                              s.tutor_name || s.tutor || "-",
+                              s.mode || "-",
+                              s.active ? "Active" : "Inactive",
+                            ]);
+
+                            // column headers
+                            const colWidths = [40, 40, 40, 30, 20, 20];
+                            const startX = 14;
+                            let y = 28;
+
+                            // draw header
+                            const headers = ["Name", "Class", "Course", "Tutor", "Mode", "Active"];
+                            headers.forEach((h, i) => {
+                              doc.text(h, startX + colWidths.slice(0, i).reduce((a, b) => a + b, 0) + 1, y);
+                            });
+
+                            y += 6;
+                            rows.forEach((r, idx) => {
+                              // new page check
+                              if (y > 280) {
+                              doc.addPage();
+                              y = 20;
+                              }
+                              r.forEach((cell, i) => {
+                              const x = startX + colWidths.slice(0, i).reduce((a, b) => a + b, 0) + 1;
+                              doc.text(String(cell), x, y);
+                              });
+                              y += 6;
+                            });
+
+                            doc.save("students.pdf");
+                            toast.success("Downloaded student list PDF");
+                            } catch (err) {
+                            console.error("Failed to generate PDF", err);
+                            toast.error("Failed to generate PDF. Make sure jspdf is installed.");
+                            }
+                          }}
+                          className="w-full bg-green-600 text-white py-2 rounded-lg font-medium flex items-center justify-center gap-2"
+                          >
+                          Download Students PDF
+                          </button>
+                        </div>
+
+                        {/* Course */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Course
