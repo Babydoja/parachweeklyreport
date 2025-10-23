@@ -285,6 +285,19 @@ const Students = () => {
                           Download Students PDF
                           </button>
                         </div>
+                        <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Student Name
+                  </label>
+                  <input
+                    type="text"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleChange}
+                    required
+                    className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500"
+                  />
+                </div>
 
                         {/* Course */}
                 <div>
