@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from "react";
 import API from "../api/api";
 
-const TutorReportForm = ({ tutorId, onReportCreated }) => {
+const TutorReportForm = ({ tutorId, onReportCreated, students = [] }) => {
   const [courses, setCourses] = useState([]);
-  const [students, setStudents] = useState([]);
 
   const [course, setCourse] = useState("");
   const [student, setStudent] = useState("");
@@ -17,20 +16,37 @@ const TutorReportForm = ({ tutorId, onReportCreated }) => {
   const [success, setSuccess] = useState(null);
 
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchCourses = async () => {
       try {
-        const [coursesRes, studentsRes] = await Promise.all([
-          API.get("/courses/"),
-          API.get("/students/"),
-        ]);
-        setCourses(coursesRes.data);
-        setStudents(studentsRes.data);
+        const res = await API.get("/courses/");
+        setCourses(res.data);
       } catch (err) {
-        console.error("Failed to fetch data:", err);
+        console.error("Failed to fetch courses:", err);
       }
     };
-    fetchData();
+    fetchCourses();
   }, []);
+
+  useEffect(() => {
+    const fetchStudentWeek = async () => {
+      if (!tutorId || !student) return;
+      try {
+        const res = await API.get(`/tutors/${tutorId}/reports/`);
+        const studentReports = res.data.filter(
+          (r) => String(r.student) === String(student)
+        );
+        if (studentReports.length > 0) {
+          const latest = studentReports[studentReports.length - 1];
+          setWeek(latest.week + 1);
+        } else {
+          setWeek(1);
+        }
+      } catch (err) {
+        console.error("Failed to fetch week for student:", err);
+      }
+    };
+    fetchStudentWeek();
+  }, [tutorId, student]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -42,7 +58,7 @@ const TutorReportForm = ({ tutorId, onReportCreated }) => {
       const payload = {
         course,
         student,
-        manual_topic: manualTopic, // 👈 new field sent to backend
+        manual_topic: manualTopic,
         week,
         mode_of_learning: modeOfLearning,
         attendance,
@@ -50,21 +66,18 @@ const TutorReportForm = ({ tutorId, onReportCreated }) => {
 
       const res = await API.post(`/tutors/${tutorId}/reports/`, payload);
       setSuccess("Report created successfully!");
-
-      // Reset form
       setCourse("");
       setStudent("");
       setManualTopic("");
-      setWeek(1);
       setModeOfLearning("physical");
       setAttendance(0);
+      setWeek((prev) => prev + 1);
 
       if (onReportCreated) onReportCreated(res.data);
     } catch (err) {
       console.error("Report creation failed:", err.response?.data || err.message);
       setError("Failed to create report. Please try again.");
     }
-
     setLoading(false);
   };
 
@@ -109,7 +122,9 @@ const TutorReportForm = ({ tutorId, onReportCreated }) => {
             <option value="">-- Select Student --</option>
             {students.map((s) => (
               <option key={s.id} value={s.id}>
-                {s.name || `${s.first_name || ""} ${s.last_name || ""}` || s.username}
+                {s.name ||
+                  `${s.first_name || ""} ${s.last_name || ""}` ||
+                  s.username}
               </option>
             ))}
           </select>
@@ -127,6 +142,19 @@ const TutorReportForm = ({ tutorId, onReportCreated }) => {
             placeholder="Enter topic covered..."
             required
             className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+
+        {/* Week Display */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Week Number
+          </label>
+          <input
+            type="number"
+            value={week}
+            readOnly
+            className="w-full border border-gray-300 rounded-md px-3 py-2 bg-gray-100 focus:outline-none"
           />
         </div>
 
@@ -170,7 +198,6 @@ const TutorReportForm = ({ tutorId, onReportCreated }) => {
           </button>
         </div>
 
-        {/* Feedback messages */}
         {error && <p className="text-red-600 text-sm mt-2">{error}</p>}
         {success && <p className="text-green-600 text-sm mt-2">{success}</p>}
       </form>

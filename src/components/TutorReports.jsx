@@ -16,14 +16,13 @@ const TutorReports = () => {
   // Filters
   const [dateFilter, setDateFilter] = useState("");
   const [studentFilter, setStudentFilter] = useState("");
-  const [courseFilter, setCourseFilter] = useState(""); // ✅ new
+  const [courseFilter, setCourseFilter] = useState("");
 
-  // Maps for ID -> Name
+  // Maps
   const [tutorMap, setTutorMap] = useState({});
   const [courseMap, setCourseMap] = useState({});
   const [studentMap, setStudentMap] = useState({});
 
-  // --- Fetch all mapping data ---
   const fetchData = async () => {
     try {
       const [tutorsRes, coursesRes, studentsRes] = await Promise.all([
@@ -43,16 +42,17 @@ const TutorReports = () => {
       );
 
       setStudentMap(
-        studentsRes.data.reduce(
-          (acc, s) => ({
-            ...acc,
-            [s.id]:
+        studentsRes.data.reduce((acc, s) => {
+          acc[s.id] = {
+            id: s.id,
+            name:
               s.name ||
               `${s.first_name || ""} ${s.last_name || ""}`.trim() ||
               s.username,
-          }),
-          {}
-        )
+            tutor: s.tutor?.id || s.tutor,
+          };
+          return acc;
+        }, {})
       );
     } catch (err) {
       setError("Failed to fetch reference data.");
@@ -60,13 +60,12 @@ const TutorReports = () => {
     }
   };
 
-  // --- Fetch reports for a tutor ---
   const fetchReports = async (tutorId) => {
     setLoading(true);
     setError(null);
     try {
       const res = await API.get(`/tutors/${tutorId}/reports/`);
-      setReports(res.data);
+      setReports(res.data.reverse());
       setCurrentPage(1);
     } catch (err) {
       setReports([]);
@@ -97,14 +96,16 @@ const TutorReports = () => {
     if (selectedTutorId) fetchReports(selectedTutorId);
   }, [selectedTutorId]);
 
-  // --- Filtering Logic ---
+  // ✅ Filtering Logic
   const filteredReports = reports.filter((report) => {
     const matchesDate = dateFilter
       ? new Date(report.created_at).toISOString().split("T")[0] === dateFilter
       : true;
 
     const matchesStudent = studentFilter
-      ? studentMap[report.student]?.toLowerCase().includes(studentFilter.toLowerCase())
+      ? studentMap[report.student]?.name
+          ?.toLowerCase()
+          .includes(studentFilter.toLowerCase())
       : true;
 
     const matchesCourse = courseFilter
@@ -114,11 +115,15 @@ const TutorReports = () => {
     return matchesDate && matchesStudent && matchesCourse;
   });
 
-  // --- Pagination Logic ---
+  // Pagination
   const indexOfLastReport = currentPage * reportsPerPage;
   const indexOfFirstReport = indexOfLastReport - reportsPerPage;
   const currentReports = filteredReports.slice(indexOfFirstReport, indexOfLastReport);
   const totalPages = Math.ceil(filteredReports.length / reportsPerPage);
+
+  const tutorStudents = Object.values(studentMap).filter(
+    (s) => String(s.tutor) === String(selectedTutorId)
+  );
 
   return (
     <div className="p-6">
@@ -159,45 +164,45 @@ const TutorReports = () => {
         </div>
       </div>
 
-      {/* ✅ Filters Section */}
+      {/* ✅ Filter Section (now includes Course Filter) */}
       {selectedTutorId && (
-        <div className="flex flex-wrap gap-4 mb-6">
-          {/* Date filter */}
+        <div className="flex flex-wrap gap-4 items-end">
+          {/* Date Filter */}
           <div>
-            <label className="block text-sm font-semibold text-gray-800 mb-1">
-              Filter by Date:
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Filter by Date
             </label>
             <input
               type="date"
               value={dateFilter}
               onChange={(e) => setDateFilter(e.target.value)}
-              className="border border-gray-300 rounded px-3 py-1 text-sm"
+              className="border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
 
-          {/* Student filter */}
+          {/* Student Filter */}
           <div>
-            <label className="block text-sm font-semibold text-gray-800 mb-1">
-              Filter by Student:
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Filter by Student Name
             </label>
             <input
               type="text"
-              placeholder="Enter student name"
               value={studentFilter}
               onChange={(e) => setStudentFilter(e.target.value)}
-              className="border border-gray-300 rounded px-3 py-1 text-sm"
+              placeholder="Enter student name..."
+              className="border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
 
-          {/* ✅ Course filter */}
+          {/* ✅ Course Filter */}
           <div>
-            <label className="block text-sm font-semibold text-gray-800 mb-1">
-              Filter by Course:
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Filter by Course
             </label>
             <select
               value={courseFilter}
               onChange={(e) => setCourseFilter(e.target.value)}
-              className="border border-gray-300 rounded px-3 py-1 text-sm"
+              className="border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="">All Courses</option>
               {Object.entries(courseMap).map(([id, name]) => (
@@ -207,22 +212,34 @@ const TutorReports = () => {
               ))}
             </select>
           </div>
+
+          {/* Reset Filters */}
+          <div>
+            <button
+              onClick={() => {
+                setDateFilter("");
+                setStudentFilter("");
+                setCourseFilter("");
+              }}
+              className="bg-blue-500 hover:bg-blue-400 text-white px-4 py-2 rounded-md text-sm font-medium transition"
+            >
+              Reset
+            </button>
+          </div>
         </div>
       )}
 
-      {/* Loading state */}
       {loading && (
         <p className="text-blue-600 text-sm font-medium mb-4 animate-pulse">
           Loading…
         </p>
       )}
 
-      {/* Error state */}
       {error && (
         <p className="text-red-600 text-sm font-medium mb-4">{error}</p>
       )}
 
-      {/* Reports table */}
+      {/* Table Section */}
       {currentReports.length > 0 && (
         <div className="overflow-x-auto mt-6">
           <table className="min-w-full bg-white border border-gray-200 rounded-lg shadow-sm">
@@ -232,6 +249,7 @@ const TutorReports = () => {
                 <th className="px-4 py-2 text-left border-b">Student</th>
                 <th className="px-4 py-2 text-left border-b">Topic</th>
                 <th className="px-4 py-2 text-left border-b">Mode</th>
+                <th className="px-4 py-2 text-left border-b">Week</th>
                 <th className="px-4 py-2 text-left border-b">Attendance</th>
                 <th className="px-4 py-2 text-left border-b">Date</th>
                 <th className="px-4 py-2 text-left border-b">Actions</th>
@@ -241,11 +259,14 @@ const TutorReports = () => {
               {currentReports.map((report) => (
                 <tr key={report.id} className="hover:bg-gray-50 transition">
                   <td className="px-4 py-2 border-b">{courseMap[report.course]}</td>
-                  <td className="px-4 py-2 border-b">{studentMap[report.student]}</td>
+                  <td className="px-4 py-2 border-b">
+                    {studentMap[report.student]?.name || "—"}
+                  </td>
                   <td className="px-4 py-2 border-b">
                     {report.manual_topic || report.topic || "—"}
                   </td>
                   <td className="px-4 py-2 border-b">{report.mode_of_learning}</td>
+                  <td className="px-4 py-2 border-b">{report.week}</td>
                   <td className="px-4 py-2 border-b">{report.attendance}</td>
                   <td className="px-4 py-2 border-b">
                     {new Date(report.created_at).toLocaleDateString()}
@@ -263,7 +284,7 @@ const TutorReports = () => {
             </tbody>
           </table>
 
-          {/* Pagination Controls */}
+          {/* Pagination */}
           <div className="flex justify-center mt-4 space-x-2">
             <button
               onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
@@ -286,12 +307,13 @@ const TutorReports = () => {
         </div>
       )}
 
-      {/* Create new report form */}
+      {/* Tutor Report Form */}
       {selectedTutorId && (
         <div className="mt-8">
           <TutorReportForm
             tutorId={selectedTutorId}
             onReportCreated={() => fetchReports(selectedTutorId)}
+            students={tutorStudents}
           />
         </div>
       )}

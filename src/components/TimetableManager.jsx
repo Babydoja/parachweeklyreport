@@ -230,7 +230,7 @@ const TutorTimetableManager = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium">Subject</label>
+              <label className="block text-sm font-medium">Course</label>
               <select
                 name="subject"
                 value={entryForm.subject}

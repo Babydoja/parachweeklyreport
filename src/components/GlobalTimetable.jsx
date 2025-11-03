@@ -147,19 +147,26 @@ const GlobalTimetable = () => {
                           const tutor = tutorDisplay(entry);
                           const color = tutorColorMap[tutor] || "from-gray-100 to-gray-200 border-gray-300";
                           return (
-                            <div
-                              key={entry.id}
-                              className={`rounded-lg p-3 text-sm transition-all duration-200 hover:shadow-md flex gap-[20px] items-center bg-gradient-to-br ${color}`}
-                            >
-                              <div className="font-semibold text-white flex items-start gap-1">
-                                <Users className="w-4 h-3 flex-shrink-0 mt-0.5 text-white" />
-                                <span className="line-clamp-2">{entry.subject || "Untitled"}</span>
-                              </div>
-                              <div className="flex items-center gap-1 text-xs text-white">
-                                <User className="w-3 h-3 flex-shrink-0 text-white" />
-                                <span className="truncate">{tutor}</span>
-                              </div>
-                            </div>
+                          <div
+  key={entry.id}
+  className={`rounded-lg text-sm transition-all duration-200 hover:shadow-md flex flex-col justify-center items-center text-center bg-gradient-to-br ${color}`}
+  style={{
+    width: "110px",   
+    height: "70px",  
+    minWidth: "110px",
+    minHeight: "70px",
+  }}
+>
+  <div className="font-semibold text-white text-xs mb-1 line-clamp-1">
+
+    {entry.subject || "Untitled"}
+  </div>
+  <div className="flex items-center justify-center gap-1 text-[11px] text-white truncate">
+    <User className="w-3 h-3 text-white" />
+    <span>{tutor}</span>
+  </div>
+</div>
+
                           );
                         })}
                     </div>

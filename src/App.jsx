@@ -20,8 +20,8 @@ import AccessGate from "./components/AccessGate";
 
 export default function App() {
   return (
-    <AccessGate> 
-      <BrowserRouter>
+    // <AccessGate> 
+      <BrowserRouter basename="/">
       {/* <ProtectedPage/> */}
         <ToastContainer />
         {/* Parent Flex Container */}
@@ -49,7 +49,7 @@ export default function App() {
           </div>
         </div>
       </BrowserRouter>
-    </AccessGate>
+    // </AccessGate>
   );
 }
 
