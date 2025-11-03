@@ -9,13 +9,14 @@ const TutorReports = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Pagination states
+  // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const reportsPerPage = 10;
 
   // Filters
   const [dateFilter, setDateFilter] = useState("");
   const [studentFilter, setStudentFilter] = useState("");
+  const [courseFilter, setCourseFilter] = useState(""); // ✅ new
 
   // Maps for ID -> Name
   const [tutorMap, setTutorMap] = useState({});
@@ -25,7 +26,6 @@ const TutorReports = () => {
   // --- Fetch all mapping data ---
   const fetchData = async () => {
     try {
-      // 🧹 Removed topics fetching since it's paused
       const [tutorsRes, coursesRes, studentsRes] = await Promise.all([
         API.get("/tutors/"),
         API.get("/courses/"),
@@ -47,7 +47,9 @@ const TutorReports = () => {
           (acc, s) => ({
             ...acc,
             [s.id]:
-              s.name || `${s.first_name || ""} ${s.last_name || ""}` || s.username,
+              s.name ||
+              `${s.first_name || ""} ${s.last_name || ""}`.trim() ||
+              s.username,
           }),
           {}
         )
@@ -65,7 +67,7 @@ const TutorReports = () => {
     try {
       const res = await API.get(`/tutors/${tutorId}/reports/`);
       setReports(res.data);
-      setCurrentPage(1); // reset to first page when tutor changes
+      setCurrentPage(1);
     } catch (err) {
       setReports([]);
       setError("Failed to fetch tutor reports.");
@@ -105,7 +107,11 @@ const TutorReports = () => {
       ? studentMap[report.student]?.toLowerCase().includes(studentFilter.toLowerCase())
       : true;
 
-    return matchesDate && matchesStudent;
+    const matchesCourse = courseFilter
+      ? String(report.course) === String(courseFilter)
+      : true;
+
+    return matchesDate && matchesStudent && matchesCourse;
   });
 
   // --- Pagination Logic ---
@@ -153,6 +159,57 @@ const TutorReports = () => {
         </div>
       </div>
 
+      {/* ✅ Filters Section */}
+      {selectedTutorId && (
+        <div className="flex flex-wrap gap-4 mb-6">
+          {/* Date filter */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-800 mb-1">
+              Filter by Date:
+            </label>
+            <input
+              type="date"
+              value={dateFilter}
+              onChange={(e) => setDateFilter(e.target.value)}
+              className="border border-gray-300 rounded px-3 py-1 text-sm"
+            />
+          </div>
+
+          {/* Student filter */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-800 mb-1">
+              Filter by Student:
+            </label>
+            <input
+              type="text"
+              placeholder="Enter student name"
+              value={studentFilter}
+              onChange={(e) => setStudentFilter(e.target.value)}
+              className="border border-gray-300 rounded px-3 py-1 text-sm"
+            />
+          </div>
+
+          {/* ✅ Course filter */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-800 mb-1">
+              Filter by Course:
+            </label>
+            <select
+              value={courseFilter}
+              onChange={(e) => setCourseFilter(e.target.value)}
+              className="border border-gray-300 rounded px-3 py-1 text-sm"
+            >
+              <option value="">All Courses</option>
+              {Object.entries(courseMap).map(([id, name]) => (
+                <option key={id} value={id}>
+                  {name}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+      )}
+
       {/* Loading state */}
       {loading && (
         <p className="text-blue-600 text-sm font-medium mb-4 animate-pulse">
@@ -185,12 +242,9 @@ const TutorReports = () => {
                 <tr key={report.id} className="hover:bg-gray-50 transition">
                   <td className="px-4 py-2 border-b">{courseMap[report.course]}</td>
                   <td className="px-4 py-2 border-b">{studentMap[report.student]}</td>
-
-                  {/* ✅ Fixed topic display — now supports manual_topic */}
                   <td className="px-4 py-2 border-b">
                     {report.manual_topic || report.topic || "—"}
                   </td>
-
                   <td className="px-4 py-2 border-b">{report.mode_of_learning}</td>
                   <td className="px-4 py-2 border-b">{report.attendance}</td>
                   <td className="px-4 py-2 border-b">
